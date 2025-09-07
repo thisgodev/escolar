@@ -10,6 +10,7 @@ import {
   ListChecks,
   FileText,
 } from "lucide-react"; // Renomeamos 'Route' para evitar conflito
+import logo from "../assets/logo-sem-fundo.png";
 
 export function MainLayout() {
   const { user } = useAuth();
@@ -46,7 +47,7 @@ export function MainLayout() {
       {/* Sidebar (Barra Lateral) */}
       <aside className="w-64 bg-card border-r p-4 flex-col hidden md:flex">
         <Link to="/dashboard" className="text-2xl font-bold mb-8 text-primary">
-          BusEasy
+          <img src={logo} alt="BusEasy Logo" className="w-32" />
         </Link>
         <nav className="flex flex-col space-y-2">
           {navLinks.map(

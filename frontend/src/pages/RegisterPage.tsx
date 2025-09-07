@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../api/axios"; // Corrigido para caminho relativo
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -18,36 +19,53 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react"; // 1. Importe os ícones
-import api from "@/api/axios";
+import { Eye, EyeOff } from "lucide-react";
+import logo from "../assets/logo-sem-fundo.png";
+
 export function RegisterPage() {
   const navigate = useNavigate();
   const form = useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false); // 2. Crie o estado de visibilidade
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   async function onSubmit(data: any) {
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
     try {
       await api.post("/auth/register", data);
-      navigate("/dashboard"); // Redireciona para o dashboard após o sucesso
+      setSuccess("Conta criada com sucesso! Redirecionando para o login...");
+
+      // Redireciona para o login após 2 segundos
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || "Erro ao entrar. Tente novamente."
-      );
-      console.error("Falha no login:", err);
-    } finally {
+      if (err.response) {
+        setError(
+          err.response.data.message || "Erro ao registrar. Verifique os dados."
+        );
+      } else if (err.request) {
+        setError("Não foi possível conectar ao servidor.");
+      } else {
+        setError("Ocorreu um erro inesperado.");
+      }
+      console.error("Falha detalhada no registro:", err);
       setIsLoading(false);
     }
+    // Não definimos setIsLoading(false) no caso de sucesso, pois a página será redirecionada.
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
       <div className="w-full max-w-md">
-        {/* ... (cabeçalho da página) ... */}
+        <div className="text-center mb-8">
+          <img src={logo} alt="BusEasy Logo" className="w-32 mx-auto mb-4" />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Criar Conta</CardTitle>
@@ -68,7 +86,7 @@ export function RegisterPage() {
                     <FormItem>
                       <FormLabel>Nome Completo</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="Seu nome" {...field} />
+                        <Input placeholder="Seu nome" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -81,13 +99,16 @@ export function RegisterPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Email" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="seu@email.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                {/* 3. CAMPO DE SENHA MODIFICADO */}
                 <FormField
                   control={form.control}
                   name="password"
@@ -122,10 +143,14 @@ export function RegisterPage() {
                     </FormItem>
                   )}
                 />
-
                 {error && (
                   <p className="text-sm font-medium text-destructive">
                     {error}
+                  </p>
+                )}
+                {success && (
+                  <p className="text-sm font-medium text-green-600">
+                    {success}
                   </p>
                 )}
                 <Button type="submit" className="w-full" disabled={isLoading}>

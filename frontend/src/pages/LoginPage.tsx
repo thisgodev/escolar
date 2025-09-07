@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../api/axios";
+import api from "../api/axios"; // Corrigido para caminho relativo
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -19,27 +19,57 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react"; // 1. Importe os ícones
+import { Eye, EyeOff } from "lucide-react";
+import logo from "../assets/logo-sem-fundo.png";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const form = useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false); // 2. Crie o estado de visibilidade
+  const [showPassword, setShowPassword] = useState(false);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   async function onSubmit(data: any) {
     setIsLoading(true);
     setError(null);
     try {
-      await api.post("/auth/login", data);
-      navigate("/dashboard"); // Redireciona para o dashboard após o sucesso
+      const response = await api.post("/auth/login", data);
+
+      // 1. CAPTURA O TOKEN DA RESPOSTA DA API
+      const { token } = response.data;
+
+      if (token) {
+        // 2. SALVA O TOKEN NO LOCALSTORAGE
+        localStorage.setItem("authToken", token);
+        // 3. REDIRECIONA PARA O DASHBOARD
+        navigate("/dashboard");
+      } else {
+        // Caso atípico: a API respondeu 200 OK mas não enviou o token.
+        throw new Error("Resposta de login inválida do servidor.");
+      }
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || "Erro ao entrar. Tente novamente."
-      );
-      console.error("Falha no login:", err);
+      // Tratamento de Erros Detalhado
+      if (err.response) {
+        // O servidor respondeu com um status de erro (4xx, 5xx)
+        if (err.response.status === 401) {
+          setError("Email ou senha incorretos.");
+        } else {
+          setError(
+            err.response.data.message ||
+              "Erro no servidor. Tente novamente mais tarde."
+          );
+        }
+      } else if (err.request) {
+        // A requisição foi feita mas não houve resposta (servidor offline, CORS)
+        setError(
+          "Não foi possível conectar ao servidor. Verifique sua conexão."
+        );
+      } else {
+        // Erro na configuração da requisição
+        setError("Ocorreu um erro inesperado. Tente novamente.");
+      }
+      console.error("Falha detalhada no login:", err); // Log completo para o suporte
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +78,10 @@ export function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
       <div className="w-full max-w-md">
-        {/* ... (cabeçalho da página) ... */}
+        <div className="text-center mb-8">
+          <img src={logo} alt="BusEasy Logo" className="w-32 mx-auto mb-4" />
+          <p className="text-muted-foreground">Bem-vindo(a) de volta!</p>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Acessar sua Conta</CardTitle>
@@ -69,14 +102,16 @@ export function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Email" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="seu@email.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                {/* 3. CAMPO DE SENHA MODIFICADO */}
                 <FormField
                   control={form.control}
                   name="password"
@@ -89,11 +124,11 @@ export function LoginPage() {
                             type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
                             {...field}
-                            className="pr-10" // Adiciona espaço para o ícone
+                            className="pr-10"
                           />
                         </FormControl>
                         <button
-                          type="button" // Impede que o botão envie o formulário
+                          type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
                           aria-label={
@@ -111,7 +146,6 @@ export function LoginPage() {
                     </FormItem>
                   )}
                 />
-
                 {error && (
                   <p className="text-sm font-medium text-destructive">
                     {error}

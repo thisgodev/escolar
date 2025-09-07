@@ -6,7 +6,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="buseasy-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="buseasy-ui-theme">
       <App />
     </ThemeProvider>
   </React.StrictMode>
