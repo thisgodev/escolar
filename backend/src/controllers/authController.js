@@ -1,21 +1,31 @@
-// Exemplo para registro de usuário
 const authService = require("../services/authService");
 
 class AuthController {
+  /**
+   * Lida com a requisição de registro de um novo usuário.
+   */
   async register(req, res) {
     try {
-      const { name, email, password, role } = req.body;
-      const user = await authService.register({ name, email, password, role });
-      res
-        .status(201)
-        .json({ message: "User registered successfully!", userId: user.id });
+      const user = await authService.register(req.body);
+      res.status(201).json(user);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      // Retorna 400 (Bad Request) para erros de validação, como email já em uso.
+      res.status(400).json({ message: error.message });
     }
   }
 
+  /**
+   * Lida com a requisição de login.
+   */
   async login(req, res) {
-    // ... Lógica de login
+    try {
+      const { email, password } = req.body;
+      const data = await authService.login(email, password);
+      res.status(200).json(data);
+    } catch (error) {
+      // Retorna 401 (Unauthorized) para credenciais inválidas.
+      res.status(401).json({ message: error.message });
+    }
   }
 }
 
