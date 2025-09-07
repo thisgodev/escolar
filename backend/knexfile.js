@@ -8,9 +8,15 @@ module.exports = {
   production: {
     client: "pg",
     connection: {
+      // A Vercel vai popular esta variável a partir dos seus secrets
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
+      // Esta configuração é CRUCIAL para a conexão com o Neon a partir da Vercel
+      ssl: {
+        rejectUnauthorized: false,
+      },
     },
-    migrations: { directory: "./src/database/migrations" },
+    migrations: {
+      directory: "./src/database/migrations",
+    },
   },
 };
