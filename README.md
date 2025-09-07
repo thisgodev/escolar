@@ -1,4 +1,6 @@
-# BusEasy - Sistema de Gestão de Transporte Escolar
+<span align="center"><img src="https://github.com/thisgodev/escolar/blob/master/frontend/src/assets/logo-sem-fundo.png" alt="Logo" width="200"></span>
+                                BusEasy - Sistema de Gestão de Transporte Escolar
+
 
 BusEasy é uma aplicação web full-stack projetada para otimizar a gestão de transporte escolar, oferecendo ferramentas para administradores, responsáveis, motoristas e monitores. O sistema integra planejamento de rotas, acompanhamento diário de alunos e gestão financeira completa.
 
