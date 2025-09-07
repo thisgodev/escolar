@@ -42,8 +42,8 @@ Este projeto é um monorepo contendo o frontend e o backend.
 ### 1. Clonando o Repositório
 
 ```bash
-git clone https://github.com/SEU_USUARIO/transporte-escolar-app.git
-cd transporte-escolar-app
+git clone git@github.com:thisgodev/escolar.git
+cd escolar
 ```
 
 ### 2. Configurando o Backend
