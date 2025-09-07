@@ -23,7 +23,8 @@ export function DashboardPage() {
         )
         .finally(() => setLoading(false));
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role]);
 
   const renderDashboardByRole = () => {
     if (!user || !summary) return null;
