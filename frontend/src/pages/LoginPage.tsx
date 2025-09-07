@@ -24,7 +24,12 @@ import logo from "../assets/logo-sem-fundo.png";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const form = useForm();
+  const form = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);

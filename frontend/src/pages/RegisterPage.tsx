@@ -24,7 +24,13 @@ import logo from "../assets/logo-sem-fundo.png";
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const form = useForm();
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
