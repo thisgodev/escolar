@@ -20,6 +20,7 @@ import { RouteDetailPage } from "../pages/RouteDetailPage";
 import { ContractsPage } from "../pages/ContractsPage";
 import { ContractDetailPage } from "../pages/ContractDetailPage";
 import { ChecklistPage } from "../pages/ChecklistPage";
+import { VehiclesPage } from "@/pages/VehiclesPage";
 
 export function AppRouter() {
   return (
@@ -41,6 +42,7 @@ export function AppRouter() {
             <Route path="/contracts" element={<ContractsPage />} />
             <Route path="/contracts/:id" element={<ContractDetailPage />} />
             <Route path="/checklist" element={<ChecklistPage />} />
+            <Route path="/vehicles" element={<VehiclesPage />} />
           </Route>
         </Route>
       </Routes>
