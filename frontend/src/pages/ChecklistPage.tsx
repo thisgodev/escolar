@@ -243,25 +243,31 @@ export function ChecklistPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 pl-12">
-                      {(student.trip_type === "ida_e_volta" ||
-                        student.trip_type === "apenas_ida") && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold w-12 text-muted-foreground">
-                            IDA:
-                          </span>
-                          {renderCheckStatus(student, "ida")}
-                        </div>
-                      )}
-                      {(student.trip_type === "ida_e_volta" ||
-                        student.trip_type === "apenas_volta") && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold w-12 text-muted-foreground">
-                            VOLTA:
-                          </span>
-                          {renderCheckStatus(student, "volta")}
-                        </div>
-                      )}
+                    {/* Container dos botões/status com layout responsivo */}
+                    <div className="pl-12 pt-2">
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                        {/* Status/Botões de IDA */}
+                        {(student.trip_type === "ida_e_volta" ||
+                          student.trip_type === "apenas_ida") && (
+                          <div className="flex items-center gap-2 min-w-[140px]">
+                            <span className="font-semibold w-12 text-muted-foreground">
+                              IDA:
+                            </span>
+                            {renderCheckStatus(student, "ida")}
+                          </div>
+                        )}
+
+                        {/* Status/Botões de VOLTA */}
+                        {(student.trip_type === "ida_e_volta" ||
+                          student.trip_type === "apenas_volta") && (
+                          <div className="flex items-center gap-2 min-w-[140px]">
+                            <span className="font-semibold w-12 text-muted-foreground">
+                              VOLTA:
+                            </span>
+                            {renderCheckStatus(student, "volta")}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

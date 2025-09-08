@@ -106,8 +106,8 @@ export function MainLayout() {
                     <img src={logo} alt="BusEasy Logo" className="w-32" />
                   </Link>
                 </SheetTitle>
-                <SheetDescription>
-                  Menu de navegação principal do BusEasy.
+                <SheetDescription className="colors-muted-foreground mt-2">
+                  BusEasy, facilitando o transporte escolar.
                 </SheetDescription>
               </SheetHeader>
               <NavigationLinks onLinkClick={() => setIsSheetOpen(false)} />
