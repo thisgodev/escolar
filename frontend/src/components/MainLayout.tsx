@@ -19,6 +19,7 @@ import {
   FileText,
   Menu,
   Car,
+  Building,
 } from "lucide-react";
 import logo from "../assets/logo-sem-fundo.png";
 import { useState } from "react"; // Importe o useState
@@ -39,6 +40,12 @@ const NavigationLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     { to: "/routes", label: "Rotas", icon: RouteIcon, roles: ["admin"] },
     { to: "/contracts", label: "Contratos", icon: FileText, roles: ["admin"] },
     { to: "/vehicles", label: "Frota", icon: Car, roles: ["admin"] },
+    {
+      to: "/clients",
+      label: "Clientes",
+      icon: Building,
+      roles: ["super_admin"],
+    },
     {
       to: "/checklist",
       label: "Checklist",
