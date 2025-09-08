@@ -2,20 +2,19 @@ const knex = require("../config/database");
 
 class RouteRepository {
   /**
-   * Cria uma nova rota no banco de dados.
-   * @param {object} routeData - Os dados da rota.
-   * @returns {Promise<object[]>} Um array com a rota criada.
+   * Cria uma nova rota.
+   * A 'routeData' já deve conter o tenant_id.
    */
   create(routeData) {
     return knex("routes").insert(routeData).returning("*");
   }
 
   /**
-   * Retorna todas as rotas com o nome da escola associada.
-   * @returns {Promise<object[]>} Uma lista de rotas.
+   * Retorna todas as rotas (com o nome da escola).
+   * Se tenantId for fornecido, filtra por ele.
    */
-  getAll() {
-    return knex("routes")
+  getAll(tenantId) {
+    const query = knex("routes")
       .join("schools", "routes.school_id", "schools.id")
       .select(
         "routes.id",
@@ -23,15 +22,28 @@ class RouteRepository {
         "routes.description",
         "schools.name as school_name"
       );
+
+    if (tenantId) {
+      // Como a tabela 'schools' também tem tenant_id, a query já está implicitamente segura.
+      // Mas adicionar o filtro na tabela principal é uma boa prática de segurança.
+      query.where("routes.tenant_id", tenantId);
+    }
+
+    return query.orderBy("routes.name", "asc");
   }
 
   /**
-   * Encontra uma rota pelo seu ID.
-   * @param {number} id - O ID da rota.
-   * @returns {Promise<object|undefined>} A rota encontrada ou undefined.
+   * Encontra uma rota específica pelo ID.
+   * Se tenantId for fornecido, garante que a rota pertença àquele cliente.
    */
-  findById(id) {
-    return knex("routes").where({ id }).first();
+  findById(id, tenantId) {
+    const query = knex("routes").where({ id }).first();
+
+    if (tenantId) {
+      query.andWhere({ tenant_id: tenantId });
+    }
+
+    return query;
   }
 }
 

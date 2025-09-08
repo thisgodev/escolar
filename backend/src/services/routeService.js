@@ -1,5 +1,7 @@
 const knex = require("../config/database");
 const routeRepository = require("../repositories/routeRepository");
+const studentRepository = require("../repositories/studentRepository"); // Importe o studentRepository
+const userRepository = require("../repositories/userRepository"); // Importe o userRepository
 
 class RouteService {
   async createRoute(routeData) {
@@ -36,7 +38,26 @@ class RouteService {
     return { ...route, students, staff };
   }
 
-  async addStudentToRoute(routeId, studentId, tripType) {
+  async addStudentToRoute(routeId, studentId, tripType, user) {
+    const tenantId = user.tenant_id;
+    if (user.role !== "admin" || !tenantId) {
+      throw new Error("Ação não permitida.");
+    }
+
+    // ===== VALIDAÇÃO EXTRA =====
+    // 1. Verifica se a rota existe e pertence ao tenant do admin.
+    const route = await routeRepository.findById(routeId, tenantId);
+    if (!route) {
+      throw new Error("Rota não encontrada ou acesso negado.");
+    }
+
+    // 2. Verifica se o aluno existe e pertence ao mesmo tenant.
+    const student = await studentRepository.findById(studentId, tenantId);
+    if (!student) {
+      throw new Error("Aluno não encontrado ou não pertence a este cliente.");
+    }
+    // ===========================
+
     return knex("routes_students")
       .insert({ route_id: routeId, student_id: studentId, trip_type: tripType })
       .onConflict(["route_id", "student_id"])
@@ -44,11 +65,30 @@ class RouteService {
       .returning("*");
   }
 
-  async addStaffToRoute(routeId, userId, assignmentType) {
+  async addStaffToRoute(routeId, staffUserId, assignmentType, user) {
+    const tenantId = user.tenant_id;
+    if (user.role !== "admin" || !tenantId) {
+      throw new Error("Ação não permitida.");
+    }
+
+    // ===== VALIDAÇÃO EXTRA =====
+    const route = await routeRepository.findById(routeId, tenantId);
+    if (!route) {
+      throw new Error("Rota não encontrada ou acesso negado.");
+    }
+
+    const staffMember = await userRepository.findById(staffUserId); // Busca o usuário a ser adicionado
+    // Verifica se o membro da equipe existe e pertence ao mesmo tenant da rota/admin
+    if (!staffMember || staffMember.tenant_id !== tenantId) {
+      throw new Error(
+        "Membro da equipe não encontrado ou não pertence a este cliente."
+      );
+    }
+
     return knex("routes_staff")
       .insert({
         route_id: routeId,
-        user_id: userId,
+        user_id: staffUserId,
         assignment_type: assignmentType,
       })
       .onConflict(["route_id", "user_id"])

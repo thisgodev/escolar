@@ -2,10 +2,8 @@ const knex = require("../config/database");
 
 class ContractRepository {
   /**
-   * Cria um novo contrato no banco de dados.
-   * @param {object} contractData - Os dados do contrato.
-   * @param {import('knex').Transaction} [trx] - O objeto de transação, se houver.
-   * @returns {Promise<object[]>} Um array com o contrato criado.
+   * Cria um novo contrato.
+   * A 'contractData' já deve conter o tenant_id.
    */
   create(contractData, trx) {
     const queryBuilder = trx || knex;
@@ -13,23 +11,34 @@ class ContractRepository {
   }
 
   /**
-   * Retorna todos os contratos com os nomes do responsável e do aluno.
-   * @returns {Promise<object[]>} Uma lista de contratos.
+   * Retorna todos os contratos (com nomes de responsável e aluno).
+   * Se tenantId for fornecido, filtra por ele.
    */
-  getAll() {
-    return knex("contracts as c")
+  getAll(tenantId) {
+    const query = knex("contracts as c")
       .join("users as u", "c.guardian_id", "u.id")
       .join("students as s", "c.student_id", "s.id")
       .select("c.*", "u.name as guardian_name", "s.name as student_name");
+
+    if (tenantId) {
+      query.where("c.tenant_id", tenantId);
+    }
+
+    return query.orderBy("c.created_at", "desc");
   }
 
   /**
-   * Encontra um contrato pelo seu ID.
-   * @param {number} id - O ID do contrato.
-   * @returns {Promise<object|undefined>} O contrato encontrado ou undefined.
+   * Encontra um contrato específico pelo ID.
+   * Se tenantId for fornecido, garante que o contrato pertença àquele cliente.
    */
-  findById(id) {
-    return knex("contracts").where({ id }).first();
+  findById(id, tenantId) {
+    const query = knex("contracts").where({ id }).first();
+
+    if (tenantId) {
+      query.andWhere({ tenant_id: tenantId });
+    }
+
+    return query;
   }
 }
 

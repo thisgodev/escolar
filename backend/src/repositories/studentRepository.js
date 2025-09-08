@@ -17,8 +17,8 @@ class StudentRepository {
    * @param {number} guardian_id - O ID do responsável.
    * @returns {Promise<object[]>} Uma lista de alunos.
    */
-  findByGuardianId(guardian_id) {
-    return knex("students").where({ guardian_id });
+  findByGuardianId(guardian_id, tenantId) {
+    return knex("students").where({ guardian_id, tenant_id: tenantId });
   }
 
   /**

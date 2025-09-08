@@ -13,6 +13,7 @@ const schoolRoutes = require("./routes/schoolRoutes");
 const routeRoutes = require("./routes/routeRoutes");
 const contractRoutes = require("./routes/contractRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const vehicleRoutes = require("./routes/vehicleRoutes");
 
 // --- Inicialização da Aplicação Express ---
 const app = express();
@@ -53,6 +54,7 @@ app.use("/api/schools", schoolRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/contracts", contractRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/vehicles", vehicleRoutes);
 
 // --- Rota de Teste (Opcional) ---
 // Útil para verificar se o servidor está no ar.

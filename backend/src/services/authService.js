@@ -50,11 +50,16 @@ class AuthService {
       throw new Error("Credenciais inválidas.");
     }
 
-    const token = jwt.sign(
-      { id: user.id, role: user.role, name: user.name }, // Adicionamos o nome ao token
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const tokenPayload = {
+      id: user.id,
+      role: user.role,
+      name: user.name,
+      tenant_id: user.tenant_id,
+    };
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     delete user.password;
     return { user, token };

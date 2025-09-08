@@ -2,18 +2,20 @@ const studentService = require("../services/studentService");
 
 class StudentController {
   /**
-   * Lida com a requisição para criar um novo aluno.
+   * Cria um novo aluno.
    */
   async create(req, res) {
     try {
-      // O ID do responsável é pego do token, garantindo a segurança.
-      const guardian_id = req.user.id;
+      // Passa o objeto 'user' inteiro do token para o serviço
+      const creatingUser = req.user;
+      const guardian_id = creatingUser.id;
       const { address, ...studentInfo } = req.body;
       const studentData = { ...studentInfo, guardian_id };
 
       const student = await studentService.createStudentWithAddress(
         studentData,
-        address
+        address,
+        creatingUser
       );
       res.status(201).json(student);
     } catch (error) {
@@ -22,12 +24,12 @@ class StudentController {
   }
 
   /**
-   * Lida com a requisição para buscar os alunos de um responsável logado.
+   * Busca os alunos de um responsável logado.
    */
   async getByGuardian(req, res) {
     try {
-      const guardian_id = req.user.id;
-      const students = await studentService.getStudentsByGuardian(guardian_id);
+      // Passa o objeto 'user' inteiro
+      const students = await studentService.getStudentsByGuardian(req.user);
       res.status(200).json(students);
     } catch (error) {
       res.status(400).json({ message: error.message });
@@ -35,11 +37,12 @@ class StudentController {
   }
 
   /**
-   * Lida com a requisição para buscar todos os alunos (acesso de admin).
+   * Busca todos os alunos (respeitando a regra de tenant).
    */
   async getAll(req, res) {
     try {
-      const students = await studentService.getAllStudents();
+      // Passa o objeto 'user' inteiro
+      const students = await studentService.getAllStudents(req.user);
       res.status(200).json(students);
     } catch (error) {
       res.status(500).json({

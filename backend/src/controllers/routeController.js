@@ -3,7 +3,7 @@ const routeService = require("../services/routeService");
 class RouteController {
   async create(req, res) {
     try {
-      const route = await routeService.createRoute(req.body);
+      const route = await routeService.createRoute(req.body, req.user);
       res.status(201).json(route);
     } catch (error) {
       res.status(400).json({ message: error.message });
@@ -12,7 +12,7 @@ class RouteController {
 
   async getAll(req, res) {
     try {
-      const routes = await routeService.getAllRoutes();
+      const routes = await routeService.getAllRoutes(req.user);
       res.status(200).json(routes);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -22,7 +22,7 @@ class RouteController {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const route = await routeService.getRouteById(id);
+      const route = await routeService.getRouteById(id, req.user);
       res.status(200).json(route);
     } catch (error) {
       res.status(404).json({ message: error.message });
@@ -36,7 +36,8 @@ class RouteController {
       const result = await routeService.addStudentToRoute(
         id,
         student_id,
-        trip_type
+        trip_type,
+        req.user
       );
       res.status(201).json(result);
     } catch (error) {
@@ -51,7 +52,8 @@ class RouteController {
       const result = await routeService.addStaffToRoute(
         id,
         user_id,
-        assignment_type
+        assignment_type,
+        req.user
       );
       res.status(201).json(result);
     } catch (error) {
@@ -65,7 +67,11 @@ class RouteController {
       const { date } = req.query;
       if (!date)
         return res.status(400).json({ message: "A data é obrigatória." });
-      const checklist = await routeService.getChecklistForDate(id, date);
+      const checklist = await routeService.getChecklistForDate(
+        id,
+        date,
+        req.user
+      );
       res.status(200).json(checklist);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -74,9 +80,9 @@ class RouteController {
 
   async check(req, res) {
     try {
-      const checked_by_user_id = req.user.id;
-      const checkData = { ...req.body, checked_by_user_id };
-      const result = await routeService.performCheck(checkData);
+      const checkData = { ...req.body };
+      // O req.user aqui é do motorista/monitor
+      const result = await routeService.performCheck(checkData, req.user);
       res.status(201).json(result);
     } catch (error) {
       res.status(400).json({ message: error.message });
