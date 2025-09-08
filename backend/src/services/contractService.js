@@ -37,7 +37,12 @@ class ContractService {
   }
 
   async getContractDetails(contractId) {
-    const contract = await contractRepository.findById(contractId);
+    const contract = await knex("contracts as c")
+      .join("users as u", "c.guardian_id", "u.id")
+      .join("students as s", "c.student_id", "s.id")
+      .where("c.id", contractId)
+      .select("c.*", "u.name as guardian_name", "s.name as student_name")
+      .first();
     if (!contract) throw new Error("Contrato não encontrado");
     const installments = await installmentRepository.findByContractId(
       contractId
