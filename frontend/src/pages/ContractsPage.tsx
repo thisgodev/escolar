@@ -12,6 +12,7 @@ import { Button } from "../components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -62,6 +63,10 @@ export function ContractsPage() {
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Criar Novo Contrato</DialogTitle>
+              <DialogDescription>
+                Preencha as informações abaixo para criar um novo contrato no
+                sistema.
+              </DialogDescription>
             </DialogHeader>
             <ContractForm
               onContractCreated={fetchContracts}

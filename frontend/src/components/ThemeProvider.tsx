@@ -1,6 +1,7 @@
+// /frontend/src/components/ThemeProvider.tsx
 import { useEffect, useState } from "react";
 
-// Importa o Contexto e os tipos do nosso hook customizado
+// Importa o CONTEXTO, não o hook, e os tipos
 import {
   ThemeProviderContext,
   type Theme,
@@ -16,21 +17,16 @@ export type ThemeProviderProps = {
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  storageKey = "buseasy-ui-theme", // Chave única para o localStorage
+  storageKey = "buseasy-ui-theme",
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    // Ao iniciar, tenta ler o tema do localStorage. Se não encontrar, usa o padrão.
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
   useEffect(() => {
     const root = window.document.documentElement;
-
-    // Limpa as classes de tema anteriores
     root.classList.remove("light", "dark");
-
-    // Aplica a classe correta baseada no tema
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
@@ -39,21 +35,19 @@ export function ThemeProvider({
       root.classList.add(systemTheme);
       return;
     }
-
     root.classList.add(theme);
   }, [theme]);
 
-  // O valor que será compartilhado com todos os componentes filhos
   const value: ThemeProviderState = {
     theme,
     setTheme: (newTheme: Theme) => {
-      // Salva a nova escolha no localStorage e atualiza o estado
       localStorage.setItem(storageKey, newTheme);
       setTheme(newTheme);
     },
   };
 
   return (
+    // Garante que estamos usando o Provider do nosso contexto importado
     <ThemeProviderContext.Provider {...props} value={value}>
       {children}
     </ThemeProviderContext.Provider>

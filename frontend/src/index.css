@@ -1,42 +1,35 @@
+/* Importa as camadas base do Tailwind v3 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Define as variáveis de cor */
 @layer base {
-  /* TEMA ESCURO (DARK MODE - SERÁ O PADRÃO) */
+  /* TEMA ESCURO (DARK MODE) */
   .dark {
-    --background: 240 10% 3.9%; /* Preto suave */
-    --foreground: 0 0% 98%; /* Branco suave */
-
-    --card: 240 4.9% 10.9%; /* Cinza escuro para os cards */
+    --background: 240 10% 3.9%; /* Preto Suave */
+    --foreground: 0 0% 98%; /* Branco Suave */
+    --card: 240 4.9% 10.9%; /* Cinza Escuro para Cards */
     --card-foreground: 0 0% 98%;
-
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-
-    --primary: 47.9 95.8% 53.1%; /* Amarelo Vibrante */
+    --primary: 47.9 95.8% 53.1%; /* SEU AMARELO VIBRANTE */
     --primary-foreground: 240 5.9% 10%; /* Preto para texto em botões amarelos */
-
-    --secondary: 240 3.7% 15.9%; /* Cinza médio */
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 15.9%; /* Borda sutil para os cards */
+    --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 47.9 95.8% 53.1%; /* Amarelo para anel de foco */
-
-    --radius: 0.75rem; /* Bordas um pouco mais arredondadas */
+    --ring: 47.9 95.8% 53.1%;
+    --radius: 0.75rem;
   }
 
-  /* TEMA CLARO (LIGHT MODE - ALTERNATIVO) */
+  /* TEMA CLARO (LIGHT MODE) */
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -44,7 +37,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 47.9 95.8% 53.1%;
+    --primary: 47.9 95.8% 53.1%; /* SEU AMARELO VIBRANTE */
     --primary-foreground: 240 5.9% 10%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;

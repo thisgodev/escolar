@@ -6,11 +6,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useTheme } from "../hooks/use-theme";
+// import { useTheme } from "../hooks/use-theme";
 
 export function ModeToggle() {
   // Usa o hook que criamos para acessar a função setTheme
-  const { setTheme } = useTheme();
+  // const { setTheme } = useTheme();
+
+  const forceTheme = (theme: "light" | "dark" | "system") => {
+    console.log(`Forçando tema: ${theme}`);
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+  };
 
   return (
     <DropdownMenu>
@@ -24,13 +30,13 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => forceTheme("light")}>
           Claro
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => forceTheme("dark")}>
           Escuro
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => forceTheme("system")}>
           Sistema
         </DropdownMenuItem>
       </DropdownMenuContent>

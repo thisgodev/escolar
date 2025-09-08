@@ -19,19 +19,28 @@ import {
   SelectValue,
 } from "./ui/select";
 import { type Student, type School } from "../types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
-// Tipo para os dados do formulário (não tem ID)
-type StudentFormData = {
-  studentName: string;
-  birthDate: string;
-  schoolId: string;
-  logradouro: string;
-  numero: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-  cep: string;
-};
+// Esquema de validação com Zod
+
+const studentFormSchema = z.object({
+  studentName: z
+    .string()
+    .min(3, { message: "O nome deve ter pelo menos 3 caracteres." }),
+  birthDate: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), { message: "Data inválida." }),
+  schoolId: z.string().min(1, { message: "Escola é obrigatória." }),
+  logradouro: z.string().min(1, { message: "Logradouro é obrigatório." }),
+  bairro: z.string().min(1, { message: "Bairro é obrigatório." }),
+  cidade: z.string().min(1, { message: "Cidade é obrigatória." }),
+  estado: z.string().length(2, { message: "UF deve ter 2 caracteres." }),
+  numero: z.string().optional(),
+  cep: z.string().optional(),
+});
+
+type StudentFormData = z.infer<typeof studentFormSchema>;
 
 interface StudentFormProps {
   onStudentCreated: (newStudent: Student) => void;
@@ -42,7 +51,20 @@ export function StudentForm({
   onStudentCreated,
   closeDialog,
 }: StudentFormProps) {
-  const form = useForm<StudentFormData>();
+  const form = useForm<StudentFormData>({
+    resolver: zodResolver(studentFormSchema),
+    defaultValues: {
+      studentName: "",
+      logradouro: "",
+      numero: "",
+      bairro: "",
+      cidade: "",
+      estado: "",
+      cep: "",
+      birthDate: "",
+      schoolId: "",
+    },
+  });
   const [schools, setSchools] = useState<School[]>([]);
 
   useEffect(() => {

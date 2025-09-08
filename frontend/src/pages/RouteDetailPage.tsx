@@ -11,6 +11,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -113,6 +114,9 @@ export function RouteDetailPage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Adicionar Aluno à Rota</DialogTitle>
+                  <DialogDescription>
+                    Selecione um aluno para adicionar a esta rota.
+                  </DialogDescription>
                 </DialogHeader>
                 <AddStudentToRouteForm
                   routeId={route.id}
@@ -161,6 +165,9 @@ export function RouteDetailPage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Adicionar Membro da Equipe</DialogTitle>
+                  <DialogDescription>
+                    Selecione um membro da equipe para adicionar a esta rota.
+                  </DialogDescription>
                 </DialogHeader>
                 <AddStaffToRouteForm
                   routeId={route.id}
@@ -180,7 +187,11 @@ export function RouteDetailPage() {
                   >
                     <span>{member.name}</span>
                     <span className="text-sm font-semibold capitalize text-muted-foreground">
-                      {member.assignment_type.replace(/_/g, " ")}
+                      {member.assignment_type.includes("main_driver")
+                        ? "Motorista Principal"
+                        : member.assignment_type.includes("substitute_driver")
+                        ? "Motorista Assistente"
+                        : member.assignment_type.replace(/_/g, " ")}
                     </span>
                   </li>
                 ))}

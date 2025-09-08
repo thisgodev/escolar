@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/axios";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import {
   Table,
@@ -14,6 +15,7 @@ import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
@@ -27,17 +29,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
 import { Checkbox } from "../components/ui/checkbox";
 import { Skeleton } from "../components/ui/skeleton";
 
-// Tipos
+// Tipos para os dados da página
 type Installment = {
   id: number;
   installment_number: number;
   due_date: string;
   base_value: number;
-  status: "pending" | "paid" | "overdue";
+  status: "pending" | "paid" | "overdue" | "cancelled";
   payment_date: string | null;
 };
 type ContractDetails = {
@@ -50,15 +53,19 @@ type ContractDetails = {
 export function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [contract, setContract] = useState<ContractDetails | null>(null);
-  const [selectedInstallment, setSelectedInstallment] =
-    useState<Installment | null>(null);
+  const [paymentModalData, setPaymentModalData] = useState<Installment | null>(
+    null
+  );
   const [undoAlertData, setUndoAlertData] = useState<Installment | null>(null);
   const [selectedInstallments, setSelectedInstallments] = useState<number[]>(
     []
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchContractDetails = useCallback(() => {
-    if (id) api.get(`/contracts/${id}`).then((res) => setContract(res.data));
+    if (id) {
+      api.get(`/contracts/${id}`).then((res) => setContract(res.data));
+    }
   }, [id]);
 
   useEffect(() => {
@@ -74,18 +81,57 @@ export function ContractDetailPage() {
   };
 
   const handleBulkPay = async () => {
-    /* ... (lógica existente) ... */
-  };
-  const handleUndoPayment = async () => {
-    /* ... (lógica existente) ... */
+    setIsLoading(true);
+    const promise = api.post("/contracts/installments/bulk-pay", {
+      installmentIds: selectedInstallments,
+      paymentDate: new Date().toISOString().split("T")[0],
+    });
+
+    toast.promise(promise, {
+      loading: "Registrando pagamentos em lote...",
+      success: () => {
+        setSelectedInstallments([]);
+        fetchContractDetails();
+        return `${selectedInstallments.length} parcelas quitadas com sucesso!`;
+      },
+      error: "Falha ao quitar parcelas. Tente novamente.",
+    });
+
+    promise.finally(() => setIsLoading(false));
   };
 
-  if (!contract)
+  const handleUndoPayment = async () => {
+    if (!undoAlertData) return;
+    setIsLoading(true);
+
+    const promise = api.patch(
+      `/contracts/installments/${undoAlertData.id}/undo`
+    );
+
+    toast.promise(promise, {
+      loading: "Desfazendo pagamento...",
+      success: () => {
+        fetchContractDetails();
+        return "Pagamento desfeito com sucesso!";
+      },
+      error: "Falha ao desfazer o pagamento.",
+    });
+
+    promise.finally(() => {
+      setIsLoading(false);
+      setUndoAlertData(null);
+    });
+  };
+
+  if (!contract) {
     return (
-      <div className="container p-8">
+      <div className="container mx-auto p-4 md:p-8">
+        <Skeleton className="h-8 w-48 mb-6" />
+        <Skeleton className="h-10 w-1/2 mb-6" />
         <Skeleton className="h-[400px] w-full" />
       </div>
     );
+  }
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -108,13 +154,32 @@ export function ContractDetailPage() {
           <p className="text-sm font-medium flex-1">
             {selectedInstallments.length} parcelas selecionadas.
           </p>
-          <Button
-            onClick={handleBulkPay}
-            size="sm"
-            className="bg-primary text-primary-foreground"
-          >
-            Quitar Selecionados
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                size="sm"
+                className="bg-primary text-primary-foreground"
+                disabled={isLoading}
+              >
+                {isLoading ? "Quitando..." : "Quitar Selecionados"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar Quitação em Lote</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você tem certeza que deseja registrar o pagamento para as{" "}
+                  {selectedInstallments.length} parcelas selecionadas?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleBulkPay}>
+                  Sim, quitar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
 
@@ -132,7 +197,14 @@ export function ContractDetailPage() {
           </TableHeader>
           <TableBody>
             {contract.installments.map((installment) => (
-              <TableRow key={installment.id}>
+              <TableRow
+                key={installment.id}
+                data-state={
+                  selectedInstallments.includes(installment.id)
+                    ? "selected"
+                    : undefined
+                }
+              >
                 <TableCell>
                   {installment.status === "pending" && (
                     <Checkbox
@@ -158,7 +230,11 @@ export function ContractDetailPage() {
                 <TableCell>
                   <Badge
                     variant={
-                      installment.status === "paid" ? "default" : "destructive"
+                      installment.status === "paid"
+                        ? "default"
+                        : installment.status === "overdue"
+                        ? "destructive"
+                        : "secondary"
                     }
                     className="capitalize"
                   >
@@ -173,7 +249,7 @@ export function ContractDetailPage() {
                   {installment.status === "pending" && (
                     <Button
                       size="sm"
-                      onClick={() => setSelectedInstallment(installment)}
+                      onClick={() => setPaymentModalData(installment)}
                     >
                       Registrar Pagamento
                     </Button>
@@ -196,25 +272,28 @@ export function ContractDetailPage() {
       </div>
 
       <Dialog
-        open={!!selectedInstallment}
-        onOpenChange={(isOpen) => !isOpen && setSelectedInstallment(null)}
+        open={!!paymentModalData}
+        onOpenChange={(isOpen) => !isOpen && setPaymentModalData(null)}
       >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
               Registrar Pagamento - Parcela #
-              {selectedInstallment?.installment_number}
+              {paymentModalData?.installment_number}
             </DialogTitle>
+            <DialogDescription>
+              Insira os detalhes do pagamento para confirmar.
+            </DialogDescription>
           </DialogHeader>
-          {selectedInstallment && (
+          {paymentModalData && (
             <RegisterPaymentForm
-              installmentId={selectedInstallment.id}
-              baseValue={selectedInstallment.base_value}
+              installmentId={paymentModalData.id}
+              baseValue={paymentModalData.base_value}
               onPaymentRegistered={() => {
                 fetchContractDetails();
-                setSelectedInstallment(null);
+                setPaymentModalData(null);
               }}
-              closeDialog={() => setSelectedInstallment(null)}
+              closeDialog={() => setPaymentModalData(null)}
             />
           )}
         </DialogContent>
@@ -234,8 +313,12 @@ export function ContractDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleUndoPayment}>
-              Sim, desfazer
+            <AlertDialogAction
+              onClick={handleUndoPayment}
+              disabled={isLoading}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              {isLoading ? "Aguarde..." : "Sim, desfazer"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

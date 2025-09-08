@@ -10,6 +10,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -64,6 +65,10 @@ export function StudentsPage() {
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Cadastrar Novo Aluno</DialogTitle>
+              <DialogDescription>
+                Preencha as informações abaixo para cadastrar um novo aluno no
+                sistema.
+              </DialogDescription>
             </DialogHeader>
             <StudentForm
               onStudentCreated={handleStudentCreated}

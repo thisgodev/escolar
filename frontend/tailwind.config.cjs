@@ -1,22 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: ["class"], // Habilita o dark mode via classe no <html>
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}", // Padrão mais abrangente e seguro
+    "./src/**/*.{js,ts,jsx,tsx}", // Escaneia todos os arquivos em /src
   ],
   prefix: "",
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
+      // AQUI DEFINIMOS SUA PALETA DE CORES
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +48,7 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      // ... (keyframes e animation para shadcn)
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

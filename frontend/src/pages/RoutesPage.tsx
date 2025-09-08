@@ -12,6 +12,7 @@ import { Button } from "../components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -66,6 +67,10 @@ export function RoutesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Cadastrar Nova Rota</DialogTitle>
+              <DialogDescription>
+                Preencha as informações abaixo para criar uma nova rota no
+                sistema.
+              </DialogDescription>
             </DialogHeader>
             <RouteForm
               onRouteCreated={handleRouteCreated}

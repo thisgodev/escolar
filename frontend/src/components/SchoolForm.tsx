@@ -37,7 +37,18 @@ interface SchoolFormProps {
 }
 
 export function SchoolForm({ onSchoolCreated, closeDialog }: SchoolFormProps) {
-  const form = useForm<SchoolFormData>();
+  const form = useForm<SchoolFormData>({
+    defaultValues: {
+      name: "",
+      cnpj: "",
+      logradouro: "",
+      numero: "",
+      bairro: "",
+      cidade: "",
+      estado: "",
+      cep: "",
+    },
+  });
 
   async function onSubmit(data: SchoolFormData) {
     try {

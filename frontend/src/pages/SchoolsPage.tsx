@@ -12,6 +12,7 @@ import { Button } from "../components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -58,6 +59,10 @@ export function SchoolsPage() {
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Cadastrar Nova Escola</DialogTitle>
+              <DialogDescription>
+                Preencha as informações abaixo para cadastrar uma nova escola no
+                sistema.
+              </DialogDescription>
             </DialogHeader>
             <SchoolForm
               onSchoolCreated={handleSchoolCreated}

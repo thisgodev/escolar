@@ -9,7 +9,9 @@ export type ThemeProviderState = {
 
 export const initialState: ThemeProviderState = {
   theme: "system",
-  setTheme: () => null,
+  setTheme: () => {
+    console.error("A função setTheme foi chamada fora de um ThemeProvider.");
+  },
 };
 
 export const ThemeProviderContext =
@@ -17,8 +19,5 @@ export const ThemeProviderContext =
 
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
   return context;
 };
