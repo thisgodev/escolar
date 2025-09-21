@@ -9,12 +9,19 @@ class StudentController {
       // Passa o objeto 'user' inteiro do token para o serviço
       const creatingUser = req.user;
       const guardian_id = creatingUser.id;
-      const { address, ...studentInfo } = req.body;
+      const { addresses, ...studentInfo } = req.body;
+
+      if (!Array.isArray(addresses)) {
+        return res
+          .status(400)
+          .json({ message: "O campo 'addresses' deve ser um array." });
+      }
+
       const studentData = { ...studentInfo, guardian_id };
 
-      const student = await studentService.createStudentWithAddress(
+      const student = await studentService.createStudentWithAddresses(
         studentData,
-        address,
+        addresses,
         creatingUser
       );
       res.status(201).json(student);
@@ -49,6 +56,42 @@ class StudentController {
         message: "Erro ao buscar todos os alunos.",
         error: error.message,
       });
+    }
+  }
+
+  async getAddresses(req, res) {
+    try {
+      const { id } = req.params;
+      const addresses = await studentService.getStudentAddresses(id, req.user);
+      res.status(200).json(addresses);
+    } catch (error) {
+      res.status(404).json({ message: error.message });
+    }
+  }
+
+  async getById(req, res) {
+    try {
+      const student = await studentService.getStudentDetails(
+        req.params.id,
+        req.user
+      );
+      res.status(200).json(student);
+    } catch (error) {
+      res.status(404).json({ message: error.message });
+    }
+  }
+
+  async update(req, res) {
+    try {
+      // Passa o req.body inteiro como o payload
+      const student = await studentService.updateStudentWithAddresses(
+        req.params.id,
+        req.body,
+        req.user
+      );
+      res.status(200).json(student);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
     }
   }
 }

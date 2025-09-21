@@ -1,8 +1,10 @@
+// /backend/src/repositories/clientRepository.js
 const knex = require("../config/database");
 class ClientRepository {
-  create(clientData, trx) {
-    const queryBuilder = trx || knex;
-    return queryBuilder("tenants").insert(clientData).returning("*");
+  // O método create agora só precisa receber os dados
+  create(clientData) {
+    // Ele não precisa saber sobre transações, apenas sobre o Knex
+    return knex("tenants").insert(clientData).returning("*");
   }
   getAll() {
     return knex("tenants").select("*").orderBy("company_name", "asc");

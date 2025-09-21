@@ -18,10 +18,23 @@ class SchoolController {
 
       res.status(201).json(school);
     } catch (error) {
-      // Retorna 403 (Forbidden) se a regra de negócio do serviço barrar a permissão
+      // ===== TRATAMENTO DE ERRO ESPECÍFICO =====
+      // Verifica se o erro veio do driver do banco de dados e se o código é de violação de constraint única
+      if (
+        error.code === "23505" &&
+        error.constraint === "schools_cnpj_unique"
+      ) {
+        // Retorna um erro 409 (Conflict), que é mais semântico para este caso
+        return res
+          .status(409)
+          .json({ message: "Este CNPJ já está cadastrado no sistema." });
+      }
+      // ===========================================
+
       if (error.message.includes("Apenas administradores")) {
         return res.status(403).json({ message: error.message });
       }
+      // Para outros erros, mantém o comportamento padrão
       res.status(400).json({ message: error.message });
     }
   }

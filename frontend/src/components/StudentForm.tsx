@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import api from "../api/axios";
 import { Button } from "./ui/button";
 import {
@@ -18,96 +18,146 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { type Student, type School } from "../types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { DialogFooter } from "./ui/dialog";
+import { type Student, type School } from "../types";
+import { useViaCEP } from "@/hooks/useViaCEP";
 
-// Esquema de validação com Zod
+// Tipo para os dados dos endereços no formulário
+type AddressFormData = {
+  id?: number; // O ID é opcional, existirá na edição
+  label: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+};
 
-const studentFormSchema = z.object({
-  studentName: z
-    .string()
-    .min(3, { message: "O nome deve ter pelo menos 3 caracteres." }),
-  birthDate: z
-    .string()
-    .refine((date) => !isNaN(Date.parse(date)), { message: "Data inválida." }),
-  schoolId: z.string().min(1, { message: "Escola é obrigatória." }),
-  logradouro: z.string().min(1, { message: "Logradouro é obrigatório." }),
-  bairro: z.string().min(1, { message: "Bairro é obrigatório." }),
-  cidade: z.string().min(1, { message: "Cidade é obrigatória." }),
-  estado: z.string().length(2, { message: "UF deve ter 2 caracteres." }),
-  numero: z.string().optional(),
-  cep: z.string().optional(),
-});
+// Tipo para os dados do formulário principal
+type StudentFormData = {
+  studentName: string;
+  birthDate: string;
+  schoolId: string;
+  addresses: AddressFormData[];
+};
 
-type StudentFormData = z.infer<typeof studentFormSchema>;
-
+// Interface de props atualizada para ser reutilizável
 interface StudentFormProps {
-  onStudentCreated: (newStudent: Student) => void;
+  onFormSubmit: () => void; // Callback genérico para sucesso
   closeDialog: () => void;
+  studentToEdit?: (Student & { addresses: AddressFormData[] }) | null; // Dados para edição
 }
 
 export function StudentForm({
-  onStudentCreated,
+  onFormSubmit,
   closeDialog,
+  studentToEdit,
 }: StudentFormProps) {
   const form = useForm<StudentFormData>({
-    resolver: zodResolver(studentFormSchema),
     defaultValues: {
       studentName: "",
-      logradouro: "",
-      numero: "",
-      bairro: "",
-      cidade: "",
-      estado: "",
-      cep: "",
       birthDate: "",
-      schoolId: "",
+      schoolId: undefined,
+      addresses: [
+        {
+          label: "Casa Principal",
+          cep: "",
+          logradouro: "",
+          numero: "",
+          bairro: "",
+          cidade: "",
+          estado: "",
+        },
+      ],
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "addresses",
+  });
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const { fetchAddressByCEP, loading: cepLoading } = useViaCEP(
+    form.setValue as any
+  );
   const [schools, setSchools] = useState<School[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    api.get("/schools").then((response) => setSchools(response.data));
+    // Preenche o formulário quando em modo de edição
+    if (studentToEdit) {
+      form.reset({
+        studentName: studentToEdit.name,
+        birthDate: studentToEdit.birth_date
+          ? new Date(studentToEdit.birth_date).toISOString().split("T")[0]
+          : "",
+        schoolId: String(studentToEdit.school_id) || undefined,
+        addresses:
+          studentToEdit.addresses.length > 0
+            ? studentToEdit.addresses
+            : [
+                {
+                  label: "",
+                  cep: "",
+                  logradouro: "",
+                  numero: "",
+                  bairro: "",
+                  cidade: "",
+                  estado: "",
+                },
+              ],
+      });
+    }
+  }, [studentToEdit, form]);
+
+  useEffect(() => {
+    api.get("/schools").then((response) => {
+      setSchools(response.data);
+    });
   }, []);
 
   async function onSubmit(data: StudentFormData) {
     setIsLoading(true);
-    const promise = api.post("/students", {
+
+    // VERIFICAÇÃO DE SEGURANÇA: Garante que um schoolId foi selecionado
+    if (!data.schoolId || isNaN(Number(data.schoolId))) {
+      toast.error("Por favor, selecione uma escola válida.");
+      setIsLoading(false);
+      return;
+    }
+
+    const payload = {
       name: data.studentName,
       birth_date: data.birthDate,
       school_id: Number(data.schoolId),
-      address: {
-        logradouro: data.logradouro,
-        numero: data.numero,
-        bairro: data.bairro,
-        cidade: data.cidade,
-        estado: data.estado,
-        cep: data.cep,
-      },
-    });
+      addresses: data.addresses,
+    };
+
+    let promise;
+
+    if (studentToEdit) {
+      promise = api.patch(`/students/${studentToEdit.id}`, payload);
+    } else {
+      promise = api.post("/students", payload);
+    }
 
     toast.promise(promise, {
-      loading: "Salvando aluno...",
-      success: (response) => {
-        onStudentCreated(response.data);
+      loading: "Salvando dados do aluno...",
+      success: () => {
+        onFormSubmit(); // Chama o callback de sucesso (ex: fetchStudent)
         closeDialog();
         return "Aluno salvo com sucesso!";
       },
-      error: "Falha ao salvar o aluno.",
+      error: (err) => err.response?.data?.message || "Falha ao salvar o aluno.",
     });
-
     promise.finally(() => setIsLoading(false));
   }
 
   return (
     <Form {...form}>
-      {/* 1. O 'form' agora envolve todo o conteúdo, incluindo o rodapé */}
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* 2. O conteúdo do formulário fica em um 'div' rolável */}
         <div className="max-h-[70vh] overflow-y-auto p-1 pr-4 space-y-4">
           <h3 className="text-lg font-medium">Dados do Aluno</h3>
           <FormField
@@ -119,7 +169,6 @@ export function StudentForm({
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -132,22 +181,20 @@ export function StudentForm({
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
+          {/* Garanta que o seletor de escolas esteja assim: */}
           <FormField
             name="schoolId"
             control={form.control}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Escola</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
+                      {/* Exibe o nome da escola selecionada ou o placeholder */}
                       <SelectValue placeholder="Selecione a escola" />
                     </SelectTrigger>
                   </FormControl>
@@ -159,99 +206,165 @@ export function StudentForm({
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
               </FormItem>
             )}
           />
+          {fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="border p-4 rounded-lg mt-4 space-y-4 relative bg-muted/50"
+            >
+              <h4 className="font-semibold text-muted-foreground">
+                Endereço {index + 1}
+              </h4>
+              {fields.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 text-destructive hover:text-destructive"
+                  onClick={() => remove(index)}
+                >
+                  Remover
+                </Button>
+              )}
+              <FormField
+                name={`addresses.${index}.label`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identificação (Ex: Casa da Mãe)</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name={`addresses.${index}.cep`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CEP</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          maxLength={9}
+                          onBlur={(e) =>
+                            fetchAddressByCEP(e.target.value, index)
+                          }
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          fetchAddressByCEP(
+                            form.getValues(`addresses.${index}.cep`),
+                            index
+                          )
+                        }
+                        disabled={cepLoading}
+                      >
+                        {cepLoading ? "..." : "Buscar"}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name={`addresses.${index}.logradouro`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Logradouro</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name={`addresses.${index}.numero`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name={`addresses.${index}.bairro`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bairro</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name={`addresses.${index}.cidade`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name={`addresses.${index}.estado`}
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado (UF)</FormLabel>
+                    <FormControl>
+                      <Input maxLength={2} {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          ))}
 
-          <h3 className="text-lg font-medium pt-4">Endereço de Embarque</h3>
-          <FormField
-            name="logradouro"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Logradouro</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="numero"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="bairro"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bairro</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="cidade"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cidade</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="estado"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estado (UF)</FormLabel>
-                <FormControl>
-                  <Input maxLength={2} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="cep"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CEP</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              append({
+                label: "",
+                cep: "",
+                logradouro: "",
+                numero: "",
+                bairro: "",
+                cidade: "",
+                estado: "",
+              })
+            }
+          >
+            Adicionar Outro Endereço
+          </Button>
         </div>
-
-        {/* 3. O botão de submit fica em um DialogFooter fixo */}
         <DialogFooter className="pt-4">
           <Button type="button" variant="ghost" onClick={closeDialog}>
             Cancelar
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Salvando..." : "Salvar Aluno"}
+            {isLoading
+              ? "Salvando..."
+              : studentToEdit
+              ? "Salvar Alterações"
+              : "Salvar Aluno"}
           </Button>
         </DialogFooter>
       </form>

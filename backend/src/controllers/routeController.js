@@ -32,15 +32,18 @@ class RouteController {
   async addStudent(req, res) {
     try {
       const { id } = req.params;
-      const { student_id, trip_type } = req.body;
+
+      const logisticData = req.body;
+
       const result = await routeService.addStudentToRoute(
         id,
-        student_id,
-        trip_type,
+        logisticData,
         req.user
       );
+
       res.status(201).json(result);
     } catch (error) {
+      console.error("Erro em addStudent Controller:", error);
       res.status(400).json({ message: error.message });
     }
   }

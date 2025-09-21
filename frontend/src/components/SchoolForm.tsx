@@ -10,6 +10,8 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
+import { toast } from "sonner";
+import { useViaCEP } from "@/hooks/useViaCEP";
 
 // Tipo que representa o objeto retornado pela API
 type School = {
@@ -49,6 +51,11 @@ export function SchoolForm({ onSchoolCreated, closeDialog }: SchoolFormProps) {
       cep: "",
     },
   });
+  const {
+    fetchAddressByCEP,
+    loading: cepLoading,
+    error: cepError,
+  } = useViaCEP(form.setValue);
 
   async function onSubmit(data: SchoolFormData) {
     try {
@@ -64,10 +71,22 @@ export function SchoolForm({ onSchoolCreated, closeDialog }: SchoolFormProps) {
           cep: data.cep,
         },
       };
-      // A resposta da API (response.data) terá o formato do tipo School
-      const response = await api.post("/schools", payload);
-      onSchoolCreated(response.data); // Agora os tipos são compatíveis
-      closeDialog();
+      const promise = api.post("/schools", payload);
+
+      toast.promise(promise, {
+        loading: "Salvando escola...",
+        success: (response) => {
+          onSchoolCreated(response.data);
+          closeDialog();
+          return "Escola salva com sucesso!";
+        },
+        error: (err) => {
+          return (
+            err.response?.data?.message ||
+            "Falha ao salvar escola. Tente novamente."
+          );
+        },
+      });
     } catch (error) {
       console.error("Falha ao cadastrar escola:", error);
     }
@@ -105,6 +124,39 @@ export function SchoolForm({ onSchoolCreated, closeDialog }: SchoolFormProps) {
         />
 
         <h3 className="text-lg font-medium pt-4">Endereço</h3>
+        <FormField
+          name="cep"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>CEP</FormLabel>
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Input
+                    {...field}
+                    maxLength={9} // Ex: 88888-888
+                    // Chama a busca quando o campo perde o foco (onBlur)
+                    onBlur={(e) => fetchAddressByCEP(e.target.value)}
+                  />
+                </FormControl>
+                <Button
+                  type="button"
+                  onClick={() => fetchAddressByCEP(form.getValues("cep"))}
+                  disabled={cepLoading}
+                >
+                  {cepLoading ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
+              {/* Mostra erros específicos do CEP */}
+              {cepError && (
+                <p className="text-sm font-medium text-destructive">
+                  {cepError}
+                </p>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           name="logradouro"
           control={form.control}
@@ -165,19 +217,6 @@ export function SchoolForm({ onSchoolCreated, closeDialog }: SchoolFormProps) {
               <FormLabel>Estado (UF)</FormLabel>
               <FormControl>
                 <Input maxLength={2} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          name="cep"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CEP</FormLabel>
-              <FormControl>
-                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

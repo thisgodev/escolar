@@ -11,13 +11,16 @@ class ClientController {
 
   async create(req, res) {
     try {
-      const { clientData, adminData } = req.body;
+      const { clientData, adminData, address } = req.body;
       const result = await clientService.createClientWithAdmin(
         clientData,
-        adminData
+        adminData,
+        address
       );
+      console.log("Created client and admin:", result);
       res.status(201).json(result);
     } catch (error) {
+      console.error("Error creating client with admin:", error);
       res.status(400).json({ message: error.message });
     }
   }

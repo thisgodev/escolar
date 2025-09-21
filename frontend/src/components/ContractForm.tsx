@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-
+import { toast } from "sonner";
 type User = { id: number; name: string };
 type ContractFormData = {
   guardianId: string;
@@ -27,53 +27,67 @@ type ContractFormData = {
   installmentValue: number;
   firstDueDate: string;
 };
-
 interface ContractFormProps {
   onContractCreated: () => void;
   closeDialog: () => void;
 }
-
 export function ContractForm({
   onContractCreated,
   closeDialog,
 }: ContractFormProps) {
-  const form = useForm<ContractFormData>();
+  const form = useForm<ContractFormData>({
+    defaultValues: {
+      guardianId: undefined, // Começa indefinido para o placeholder do Select funcionar
+      studentId: undefined,
+      installmentsCount: 12,
+      installmentValue: 0.0,
+      firstDueDate: new Date().toISOString().split("T")[0], // Padrão: hoje
+    },
+  });
   const [guardians, setGuardians] = useState<User[]>([]);
   const [students, setStudents] = useState<User[]>([]);
-
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     api.get("/users/guardians").then((res) => setGuardians(res.data));
     api.get("/students/all").then((res) => setStudents(res.data));
   }, []);
-
   async function onSubmit(data: ContractFormData) {
-    try {
-      const payload = {
-        guardian_id: Number(data.guardianId),
-        student_id: Number(data.studentId),
-        installments_count: Number(data.installmentsCount),
-        installment_value: Number(data.installmentValue),
-        first_due_date: data.firstDueDate,
-        due_day: new Date(data.firstDueDate + "T00:00:00").getDate(),
-      };
-      await api.post("/contracts", payload);
-      onContractCreated();
-      closeDialog();
-    } catch (error) {
-      console.error("Falha ao criar contrato:", error);
-    }
-  }
+    setIsLoading(true);
+    const payload = {
+      guardian_id: Number(data.guardianId),
+      student_id: Number(data.studentId),
+      installments_count: Number(data.installmentsCount),
+      installment_value: Number(data.installmentValue),
+      first_due_date: data.firstDueDate,
+      due_day: new Date(data.firstDueDate + "T00:00:00").getDate(),
+    };
+    const promise = api.post("/contracts", payload);
 
+    toast.promise(promise, {
+      loading: "Criando contrato...",
+      success: () => {
+        onContractCreated();
+        closeDialog();
+        return "Contrato criado com sucesso!";
+      },
+      error: (err) => err.response?.data?.message || "Falha ao criar contrato.",
+    });
+
+    promise.finally(() => setIsLoading(false));
+  }
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4 max-h-[70vh] overflow-y-auto p-1 pr-4"
+      >
         <FormField
           name="guardianId"
           control={form.control}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Responsável</FormLabel>
-              <Select onValueChange={field.onChange}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o responsável" />
@@ -97,7 +111,7 @@ export function ContractForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Aluno</FormLabel>
-              <Select onValueChange={field.onChange}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o aluno" />
@@ -155,7 +169,9 @@ export function ContractForm({
           )}
         />
         <div className="flex justify-end pt-4">
-          <Button type="submit">Salvar Contrato</Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Salvando..." : "Salvar Contrato"}
+          </Button>
         </div>
       </form>
     </Form>

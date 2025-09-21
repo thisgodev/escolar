@@ -7,6 +7,7 @@ class AuthController {
   async register(req, res) {
     try {
       const user = await authService.register(req.body);
+      console.log("RETORNO SERVICE:", user);
       res.status(201).json(user);
     } catch (error) {
       // Retorna 400 (Bad Request) para erros de validação, como email já em uso.

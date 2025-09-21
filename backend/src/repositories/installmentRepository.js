@@ -30,7 +30,9 @@ class InstallmentRepository {
    * Encontra uma única parcela pelo ID, para verificação.
    */
   findById(id, tenantId) {
+    console.log("findById called with id:", id, "and tenantId:", tenantId);
     const query = knex("installments").where({ id }).first();
+    console.log("Constructed query:", query.toString());
     if (tenantId) {
       query.andWhere({ tenant_id: tenantId });
     }
@@ -41,6 +43,19 @@ class InstallmentRepository {
    * Atualiza uma parcela específica, garantindo que ela pertença ao tenant.
    */
   update(id, tenantId, data, trx) {
+    console.log(
+      `[Repository] update chamado com: id=${id}, tenantId=${tenantId}, data=${JSON.stringify(
+        data
+      )}`
+    );
+
+    if (!data || Object.keys(data).length === 0) {
+      // Adicionando uma verificação manual para lançar um erro mais claro
+      throw new Error(
+        "Dados de atualização estão vazios ou nulos no repositório."
+      );
+    }
+
     const queryBuilder = trx || knex;
     return queryBuilder("installments")
       .where({ id, tenant_id: tenantId })

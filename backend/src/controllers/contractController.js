@@ -53,12 +53,18 @@ class ContractController {
   async undoPayment(req, res) {
     try {
       const { installmentId } = req.params;
+      console.log(
+        "[Controller] Iniciando undoPayment para installmentId:",
+        installmentId
+      );
+      console.log("[Controller] Usuário da requisição:", req.user);
       const installment = await contractService.undoPayment(
         installmentId,
         req.user
-      ); // Adicionar user
+      );
       res.status(200).json(installment);
     } catch (error) {
+      console.error("[Controller] ERRO:", error.message);
       res.status(400).json({ message: error.message });
     }
   }

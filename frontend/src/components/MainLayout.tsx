@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/button";
-import { ModeToggle } from "./ModeToggle";
+// import { ModeToggle } from "./ModeToggle";
 import {
   Sheet,
   SheetContent,
@@ -128,7 +128,7 @@ export function MainLayout() {
             <span className="text-sm text-muted-foreground hidden md:inline-block">
               Olá, {user?.name || "Usuário"}
             </span>
-            <ModeToggle />
+            {/* <ModeToggle /> */}
             <Button onClick={handleLogout} variant="destructive" size="sm">
               Sair
             </Button>

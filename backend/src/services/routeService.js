@@ -4,30 +4,56 @@ const studentRepository = require("../repositories/studentRepository"); // Impor
 const userRepository = require("../repositories/userRepository"); // Importe o userRepository
 
 class RouteService {
-  async createRoute(routeData) {
+  async createRoute(routeData, user) {
+    if (user.role !== "admin" || !user.tenant_id) {
+      throw new Error("Apenas administradores de clientes podem criar rotas.");
+    }
     if (!routeData.name || !routeData.school_id) {
       throw new Error("Nome da rota e escola são obrigatórios.");
     }
-    const [newRoute] = await routeRepository.create(routeData);
+
+    const routeDataWithTenant = {
+      ...routeData,
+      tenant_id: user.tenant_id,
+    };
+
+    const [newRoute] = await routeRepository.create(routeDataWithTenant);
     return newRoute;
   }
 
-  async getAllRoutes() {
-    return routeRepository.getAll();
+  async getAllRoutes(user) {
+    // Super admins podem ver todas as rotas (tenantId = null)
+    // Admins veem apenas as rotas do seu tenant
+    const tenantId = user.role === "super_admin" ? null : user.tenant_id;
+    return routeRepository.getAll(tenantId);
   }
 
-  async getRouteById(id) {
-    const route = await routeRepository.findById(id);
-    if (!route) throw new Error("Rota não encontrada.");
+  async getRouteById(id, user) {
+    const tenantId = user.role === "super_admin" ? null : user.tenant_id;
+    const route = await routeRepository.findById(id, tenantId);
+    if (!route) throw new Error("Rota não encontrada ou acesso negado.");
 
-    const students = await knex("routes_students")
-      .join("students", "routes_students.student_id", "students.id")
-      .where("routes_students.route_id", id)
-      .select("students.id", "students.name", "routes_students.trip_type");
+    // ===== QUERY CORRIGIDA =====
+    // Agora buscamos os novos campos de logística em vez do antigo 'trip_type'
+    const students = await knex("routes_students as rs")
+      .join("students as s", "rs.student_id", "s.id")
+      .leftJoin("addresses as pa", "rs.pickup_address_id", "pa.id") // JOIN para o endereço de coleta
+      .leftJoin("addresses as da", "rs.dropoff_address_id", "da.id") // JOIN para o endereço de entrega
+      .where("rs.route_id", id)
+      .andWhere("s.tenant_id", tenantId)
+      .select(
+        "s.id",
+        "s.name",
+        "rs.weekdays", // Seleciona a nova coluna
+        "pa.logradouro as pickup_location", // Renomeia para clareza
+        "da.logradouro as dropoff_location" // Renomeia para clareza
+      );
+    // ===========================
 
     const staff = await knex("routes_staff")
       .join("users", "routes_staff.user_id", "users.id")
       .where("routes_staff.route_id", id)
+      .andWhere("users.tenant_id", tenantId)
       .select(
         "users.id",
         "users.name",
@@ -38,8 +64,10 @@ class RouteService {
     return { ...route, students, staff };
   }
 
-  async addStudentToRoute(routeId, studentId, tripType, user) {
+  async addStudentToRoute(routeId, logisticData, user) {
     const tenantId = user.tenant_id;
+    const { studentId, pickupAddressId, dropoffAddressId, weekdays } =
+      logisticData;
     if (user.role !== "admin" || !tenantId) {
       throw new Error("Ação não permitida.");
     }
@@ -59,9 +87,16 @@ class RouteService {
     // ===========================
 
     return knex("routes_students")
-      .insert({ route_id: routeId, student_id: studentId, trip_type: tripType })
+      .insert({
+        route_id: routeId,
+        student_id: studentId,
+        pickup_address_id: pickupAddressId,
+        dropoff_address_id: dropoffAddressId,
+        weekdays: JSON.stringify(weekdays), // Salva o array de dias como uma string JSON
+        tenant_id: tenantId,
+      })
       .onConflict(["route_id", "student_id"])
-      .merge()
+      .merge() // Pode ser necessário refinar a lógica de conflito
       .returning("*");
   }
 
@@ -90,6 +125,7 @@ class RouteService {
         route_id: routeId,
         user_id: staffUserId,
         assignment_type: assignmentType,
+        tenant_id: tenantId,
       })
       .onConflict(["route_id", "user_id"])
       .merge()

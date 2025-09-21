@@ -26,9 +26,12 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const form = useForm({
     defaultValues: {
-      name: "",
+      cpf: "",
       email: "",
+      name: "",
       password: "",
+      phone: "",
+      role: "guardian",
     },
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +41,9 @@ export function RegisterPage() {
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   async function onSubmit(data: any) {
+    console.log("Dados do formulário:", data);
+    data.role = "guardian"; // Define o papel como "usuario" por padrão
+    // "cpf", "email", "name", "password", "phone", "role"
     setIsLoading(true);
     setError(null);
     setSuccess(null);
@@ -87,12 +93,12 @@ export function RegisterPage() {
               >
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="cpf"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome Completo</FormLabel>
+                      <FormLabel>Documento</FormLabel>
                       <FormControl>
-                        <Input placeholder="Seu nome" {...field} />
+                        <Input placeholder="Seu documento" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,6 +114,36 @@ export function RegisterPage() {
                         <Input
                           type="email"
                           placeholder="seu@email.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome Completo</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Seu nome" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="phone"
+                          placeholder="Seu Telefone"
                           {...field}
                         />
                       </FormControl>

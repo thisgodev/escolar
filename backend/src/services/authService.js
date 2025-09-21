@@ -9,9 +9,11 @@ class AuthService {
    * @returns {Promise<object>} O novo usuário criado (sem a senha).
    */
   async register(userData) {
+    console.log("AuthService - register chamado");
     if (!userData.email || !userData.password || !userData.name) {
       throw new Error("Nome, email e senha são obrigatórios.");
     }
+    console.log("Registrando usuário com dados:", userData);
 
     const existingUser = await userRepository.findByEmail(userData.email);
     if (existingUser) {
@@ -27,6 +29,7 @@ class AuthService {
       role: userData.role || "guardian",
       cpf: userData.cpf,
       phone: userData.phone,
+      tenant_id: 1,
     });
 
     delete newUser.password;

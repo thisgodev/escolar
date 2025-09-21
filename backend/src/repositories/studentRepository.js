@@ -28,6 +28,28 @@ class StudentRepository {
   findAll() {
     return knex("students").select("id", "name");
   }
+
+  /**
+   * Encontra um aluno específico pelo ID, respeitando o tenant.
+   * @param {number} id - O ID do aluno.
+   * @param {number|null} tenantId - O ID do tenant.
+   * @returns {Promise<object|undefined>} O aluno encontrado ou undefined.
+   */
+  findById(id, tenantId) {
+    const query = knex("students").where({ id }).first();
+    if (tenantId) {
+      query.andWhere({ tenant_id: tenantId });
+    }
+    return query;
+  }
+
+  update(id, tenantId, studentData, trx) {
+    const queryBuilder = trx || knex;
+    return queryBuilder("students")
+      .where({ id, tenant_id: tenantId })
+      .update(studentData)
+      .returning("*");
+  }
 }
 
 module.exports = new StudentRepository();

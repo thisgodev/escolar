@@ -19,4 +19,9 @@ router.get("/", studentController.getByGuardian);
 // Ex: GET http://localhost:3001/api/students/all
 router.get("/all", adminMiddleware, studentController.getAll);
 
+router.get("/:id/addresses", adminMiddleware, studentController.getAddresses);
+
+router.get("/:id", studentController.getById); // Rota para buscar um aluno
+router.patch("/:id", studentController.update); // Rota para atualizar um aluno
+
 module.exports = router;

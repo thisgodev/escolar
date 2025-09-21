@@ -1,7 +1,16 @@
-// /backend/src/database/migrations/TIMESTAMP_create_installments_table.js
+// /backend/src/database/migrations/..._create_installments_table.js
 exports.up = function (knex) {
   return knex.schema.createTable("installments", (table) => {
     table.increments("id").primary();
+
+    table
+      .integer("tenant_id")
+      .unsigned()
+      .notNullable()
+      .references("id")
+      .inTable("tenants")
+      .onDelete("CASCADE");
+
     table
       .integer("contract_id")
       .unsigned()

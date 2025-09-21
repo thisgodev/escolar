@@ -22,7 +22,13 @@ import { Skeleton } from "../components/ui/skeleton";
 import { UserPlus } from "lucide-react";
 
 // Tipos
-type StudentOnRoute = { id: number; name: string; trip_type: string };
+type StudentOnRoute = {
+  id: number;
+  name: string;
+  weekdays: string[]; // Receberá um array de strings
+  pickup_location: string;
+  dropoff_location: string;
+};
 type StaffOnRoute = { id: number; name: string; assignment_type: string };
 type RouteDetails = {
   id: number;
@@ -130,14 +136,24 @@ export function RouteDetailPage() {
             {route.students && route.students.length > 0 ? (
               <ul className="divide-y divide-border">
                 {route.students.map((student) => (
-                  <li
-                    key={student.id}
-                    className="py-3 flex justify-between items-center"
-                  >
-                    <span>{student.name}</span>
-                    <span className="text-sm capitalize text-muted-foreground">
-                      {student.trip_type.replace(/_/g, " ")}
-                    </span>
+                  <li key={student.id} className="py-3">
+                    <p className="font-medium">{student.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Embarque: {student.pickup_location || "N/D"} | Entrega:{" "}
+                      {student.dropoff_location || "N/D"}
+                    </p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      Dias:{" "}
+                      {student.weekdays && student.weekdays.length > 0 ? (
+                        <p className="text-xs text-muted-foreground capitalize">
+                          Dias: {student.weekdays.join(", ")}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Dias: Não definidos
+                        </p>
+                      )}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -190,7 +206,7 @@ export function RouteDetailPage() {
                       {member.assignment_type.includes("main_driver")
                         ? "Motorista Principal"
                         : member.assignment_type.includes("substitute_driver")
-                        ? "Motorista Assistente"
+                        ? "Motorista Substituto"
                         : member.assignment_type.replace(/_/g, " ")}
                     </span>
                   </li>

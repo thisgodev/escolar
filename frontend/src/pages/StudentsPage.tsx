@@ -16,19 +16,12 @@ import {
   DialogTrigger,
 } from "../components/ui/dialog";
 import { StudentForm } from "../components/StudentForm";
-import { Link } from "react-router-dom";
-import { PlusCircle } from "lucide-react";
-
-// Tipos
-type Student = {
-  id: number;
-  name: string;
-  guardian_id: number;
-  school_id: number;
-  address_id: number;
-};
+import { useNavigate } from "react-router-dom";
+import { PlusCircle, User } from "lucide-react";
+import { type Student } from "../types"; // Importando o tipo centralizado
 
 export function StudentsPage() {
+  const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -40,18 +33,14 @@ export function StudentsPage() {
     fetchStudents();
   }, []);
 
-  const handleStudentCreated = (newStudent: Student) => {
-    setStudents((prevStudents) => [...prevStudents, newStudent]);
+  // Esta função agora não precisa mais de um argumento,
+  // pois o formulário apenas notifica o sucesso, e a página busca os dados atualizados.
+  const handleFormSubmit = () => {
+    fetchStudents();
   };
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <Link to="/dashboard">
-        <Button variant="ghost" className="mb-6">
-          &larr; Voltar
-        </Button>
-      </Link>
-
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Meus Alunos</h1>
 
@@ -66,13 +55,14 @@ export function StudentsPage() {
             <DialogHeader>
               <DialogTitle>Cadastrar Novo Aluno</DialogTitle>
               <DialogDescription>
-                Preencha as informações abaixo para cadastrar um novo aluno no
-                sistema.
+                Preencha os dados abaixo para adicionar um novo dependente.
               </DialogDescription>
             </DialogHeader>
             <StudentForm
-              onStudentCreated={handleStudentCreated}
+              // 1. O NOME DA PROP FOI CORRIGIDO
+              onFormSubmit={handleFormSubmit}
               closeDialog={() => setIsFormOpen(false)}
+              // 2. Não passamos 'studentToEdit' aqui, pois é o modo de CRIAÇÃO
             />
           </DialogContent>
         </Dialog>
@@ -80,22 +70,24 @@ export function StudentsPage() {
 
       <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-xl">Lista de Alunos</CardTitle>
+          <CardTitle className="text-xl">Lista de Alunos Cadastrados</CardTitle>
         </CardHeader>
         <CardContent>
           {students.length > 0 ? (
-            <ul className="divide-y divide-border">
+            <div className="divide-y divide-border">
               {students.map((student) => (
-                <li
+                <div
                   key={student.id}
-                  className="py-3 font-medium text-foreground"
+                  onClick={() => navigate(`/students/${student.id}`)}
+                  className="py-3 px-2 flex items-center font-medium text-foreground cursor-pointer transition-colors rounded-md hover:bg-accent"
                 >
+                  <User className="h-5 w-5 mr-3 text-muted-foreground" />
                   {student.name}
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           ) : (
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-center py-8">
               Você ainda não tem alunos cadastrados.
             </p>
           )}

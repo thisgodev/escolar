@@ -16,9 +16,15 @@ class ContractService {
     if (
       !contractData.guardian_id ||
       !contractData.student_id ||
-      !contractData.installments_count
+      !contractData.installments_count ||
+      !(contractData.installments_count > 0) ||
+      !contractData.installment_value ||
+      !(contractData.installment_value > 0) ||
+      !contractData.first_due_date
     ) {
-      throw new Error("Dados do contrato incompletos.");
+      throw new Error(
+        "Todos os campos são obrigatórios e os valores devem ser maiores que zero."
+      );
     }
 
     const contractDataWithTenant = {
@@ -108,8 +114,8 @@ class ContractService {
     const updateData = { ...paymentData, status: "paid" };
     const [updatedInstallment] = await installmentRepository.update(
       installmentId,
-      updateData,
-      tenantId
+      tenantId,
+      updateData
     );
     return updatedInstallment;
   }
@@ -133,11 +139,16 @@ class ContractService {
       paid_value: null,
       payment_date: null,
     };
+
     const [undoneInstallment] = await installmentRepository.update(
       installmentId,
-      updateData,
-      tenantId
+      tenantId,
+      updateData
     );
+
+    if (!undoneInstallment) {
+      throw new Error("Falha ao reverter a parcela após a atualização.");
+    }
 
     return undoneInstallment;
   }

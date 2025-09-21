@@ -37,6 +37,7 @@ export function RouteForm({ onRouteCreated, closeDialog }: RouteFormProps) {
 
   async function onSubmit(data: RouteFormData) {
     try {
+      console.log(data);
       const payload = {
         name: data.name,
         description: data.description,

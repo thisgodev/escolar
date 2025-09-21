@@ -4,8 +4,8 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const adminMiddleware = require("../middlewares/adminMiddleware");
 const vehicleController = require("../controllers/vehicleController");
 
-router.use(authMiddleware);
+router.use(authMiddleware, adminMiddleware);
 router.post("/", vehicleController.create);
-router.get("/all", adminMiddleware, vehicleController.getAll);
+router.get("/", vehicleController.getAll);
 
 module.exports = router;
