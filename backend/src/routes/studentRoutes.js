@@ -18,10 +18,11 @@ router.get("/", studentController.getByGuardian);
 // Rota para um administrador buscar TODOS os alunos do sistema
 // Ex: GET http://localhost:3001/api/students/all
 router.get("/all", adminMiddleware, studentController.getAll);
-
-router.get("/:id/addresses", adminMiddleware, studentController.getAddresses);
+router.get("/addable", adminMiddleware, studentController.getAddable);
 
 router.get("/:id", studentController.getById); // Rota para buscar um aluno
+
+router.get("/:id/addresses", adminMiddleware, studentController.getAddresses);
 router.patch("/:id", studentController.update); // Rota para atualizar um aluno
 
 module.exports = router;

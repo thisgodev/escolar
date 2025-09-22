@@ -52,19 +52,22 @@ export function AddStudentToRouteForm({
   const form = useForm<AddStudentFormData>({
     defaultValues: { weekdays: [] },
   });
-  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [studentAddresses, setStudentAddresses] = useState<StudentAddress[]>(
     []
   );
+  const [addableStudents, setAddableStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Observa a seleção do aluno para buscar seus endereços
   const selectedStudentId = form.watch("studentId");
 
   useEffect(() => {
-    // Busca todos os alunos do tenant para o primeiro seletor
-    api.get("/students/all").then((response) => setAllStudents(response.data));
-  }, []);
+    if (routeId) {
+      api.get(`/students/addable?routeId=${routeId}`).then((response) => {
+        setAddableStudents(response.data);
+      });
+    }
+  }, [routeId]);
 
   useEffect(() => {
     // Quando um aluno é selecionado, busca os endereços dele
@@ -103,25 +106,30 @@ export function AddStudentToRouteForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Seletor de Aluno */}
         <FormField
-          name="studentId"
           control={form.control}
+          name="studentId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Selecione o Aluno</FormLabel>
+              <FormLabel>Aluno</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
+                    <SelectValue placeholder="Selecione um aluno com contrato ativo" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {allStudents.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
+                  {addableStudents.length > 0 ? (
+                    addableStudents.map((student) => (
+                      <SelectItem key={student.id} value={String(student.id)}>
+                        {student.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Nenhum aluno disponível.
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

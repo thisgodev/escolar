@@ -16,7 +16,7 @@ class UserRepository {
    * @returns {Promise<object|undefined>} O usuário encontrado ou undefined.
    */
   findById(id) {
-    return knex("users").where({ id }).first();
+    return knex("users").where({ id }).select("*").first(); // Retorna todas as colunas
   }
 
   /**
@@ -32,18 +32,31 @@ class UserRepository {
    * Encontra todos os usuários com o papel de 'driver' ou 'monitor'.
    * @returns {Promise<object[]>} Uma lista de membros da equipe.
    */
-  findStaff() {
-    return knex("users")
+  findStaff(tenantId) {
+    const query = knex("users")
       .whereIn("role", ["driver", "monitor"])
       .select("id", "name", "role");
+
+    // Apenas Super Admin pode ver todos. Para outros, o filtro é obrigatório.
+    if (tenantId) {
+      query.andWhere({ tenant_id: tenantId });
+    }
+
+    return query;
   }
 
   /**
    * Encontra todos os usuários com o papel de 'guardian' (responsável).
    * @returns {Promise<object[]>} Uma lista de responsáveis.
    */
-  findGuardians() {
-    return knex("users").where({ role: "guardian" }).select("id", "name");
+  findGuardians(tenantId) {
+    const query = knex("users")
+      .where({ role: "guardian" })
+      .select("id", "name");
+    if (tenantId) {
+      query.andWhere({ tenant_id: tenantId });
+    }
+    return query;
   }
 }
 

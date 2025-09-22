@@ -7,11 +7,11 @@ class DashboardController {
    */
   async getSummary(req, res) {
     try {
-      const { id, role } = req.user;
+      const { id, role, tenant_id } = req.user;
       let summary;
 
       if (role === "admin") {
-        summary = await dashboardService.getAdminSummary();
+        summary = await dashboardService.getAdminSummary(tenant_id);
       } else if (role === "guardian") {
         summary = await dashboardService.getGuardianSummary(id);
       } else if (role === "driver" || role === "monitor") {

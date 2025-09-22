@@ -25,8 +25,12 @@ class StudentRepository {
    * Encontra todos os alunos do sistema.
    * @returns {Promise<object[]>} Uma lista com o ID e nome de todos os alunos.
    */
-  findAll() {
-    return knex("students").select("id", "name");
+  findAll(tenantId) {
+    const query = knex("students").select("id", "name");
+    if (tenantId) {
+      query.where({ tenant_id: tenantId });
+    }
+    return query;
   }
 
   /**
@@ -41,6 +45,22 @@ class StudentRepository {
       query.andWhere({ tenant_id: tenantId });
     }
     return query;
+  }
+
+  findActiveAndUnassigned(tenantId, routeId) {
+    // Subquery para encontrar os IDs dos alunos que JÁ estão na rota
+    const subquery = knex("routes_students")
+      .select("student_id")
+      .where("route_id", routeId);
+
+    // Query principal
+    return knex("students as s")
+      .join("contracts as c", "s.id", "c.student_id")
+      .where("s.tenant_id", tenantId)
+      .andWhere("c.status", "active") // Filtra por contrato ativo
+      .whereNotIn("s.id", subquery) // Exclui os que já estão na rota
+      .select("s.id", "s.name")
+      .distinct("s.id"); // Garante que cada aluno apareça uma vez
   }
 
   update(id, tenantId, studentData, trx) {

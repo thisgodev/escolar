@@ -19,7 +19,7 @@ import {
 import { AddStudentToRouteForm } from "../components/AddStudentToRouteForm";
 import { AddStaffToRouteForm } from "../components/AddStaffToRouteForm";
 import { Skeleton } from "../components/ui/skeleton";
-import { UserPlus } from "lucide-react";
+import { MessageSquare, UserPlus } from "lucide-react";
 
 // Tipos
 type StudentOnRoute = {
@@ -29,7 +29,12 @@ type StudentOnRoute = {
   pickup_location: string;
   dropoff_location: string;
 };
-type StaffOnRoute = { id: number; name: string; assignment_type: string };
+type StaffOnRoute = {
+  id: number;
+  name: string;
+  assignment_type: string;
+  phone?: string;
+};
 type RouteDetails = {
   id: number;
   name: string;
@@ -133,31 +138,30 @@ export function RouteDetailPage() {
             </Dialog>
           </CardHeader>
           <CardContent>
+            {/* A lógica condicional deve estar no nível superior dentro do CardContent */}
             {route.students && route.students.length > 0 ? (
               <ul className="divide-y divide-border">
                 {route.students.map((student) => (
                   <li key={student.id} className="py-3">
                     <p className="font-medium">{student.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      Embarque: {student.pickup_location || "N/D"} | Entrega:{" "}
+                      Coleta: {student.pickup_location || "N/D"} | Entrega:{" "}
                       {student.dropoff_location || "N/D"}
                     </p>
-                    <p className="text-xs text-muted-foreground capitalize">
-                      Dias:{" "}
-                      {student.weekdays && student.weekdays.length > 0 ? (
-                        <p className="text-xs text-muted-foreground capitalize">
-                          Dias: {student.weekdays.join(", ")}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">
-                          Dias: Não definidos
-                        </p>
-                      )}
-                    </p>
+                    {student.weekdays && student.weekdays.length > 0 ? (
+                      <p className="text-xs text-muted-foreground capitalize">
+                        Dias: {student.weekdays.join(", ")}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Dias: Não definidos
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>
             ) : (
+              // O texto de "nenhum aluno" agora é o único conteúdo do CardContent
               <p className="text-muted-foreground py-4">
                 Nenhum aluno nesta rota.
               </p>
@@ -201,14 +205,29 @@ export function RouteDetailPage() {
                     key={member.id}
                     className="py-3 flex justify-between items-center"
                   >
-                    <span>{member.name}</span>
-                    <span className="text-sm font-semibold capitalize text-muted-foreground">
-                      {member.assignment_type.includes("main_driver")
-                        ? "Motorista Principal"
-                        : member.assignment_type.includes("substitute_driver")
-                        ? "Motorista Substituto"
-                        : member.assignment_type.replace(/_/g, " ")}
-                    </span>
+                    <div>
+                      <span>{member.name}</span>
+                      <span className="text-sm font-semibold capitalize text-muted-foreground ml-2">
+                        ({member.assignment_type.replace(/_/g, " ")})
+                      </span>
+                    </div>
+                    {/* ADICIONE O BOTÃO/LINK AQUI */}
+                    {member.phone && (
+                      <a
+                        href={`https://wa.me/55${member.phone.replace(
+                          /\D/g,
+                          ""
+                        )}?text=Olá%20${member.name},%20sobre%20a%20rota%20${
+                          route.name
+                        }...`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="ghost" size="icon">
+                          <MessageSquare className="h-5 w-5 text-green-500" />
+                        </Button>
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

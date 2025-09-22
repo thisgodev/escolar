@@ -47,6 +47,7 @@ type ContractDetails = {
   id: number;
   guardian_name: string;
   student_name: string;
+  student_id: number;
   installments: Installment[];
 };
 
@@ -123,6 +124,34 @@ export function ContractDetailPage() {
     });
   };
 
+  const handleDownloadReport = () => {
+    const month = new Date().getMonth() + 1; // Mês atual
+    const year = new Date().getFullYear();
+
+    // Cria a URL para o endpoint do relatório
+    const reportUrl = `${
+      import.meta.env.VITE_API_URL
+    }/reports/student-frequency?studentId=${
+      contract?.student_id
+    }&month=${month}&year=${year}`;
+
+    // Para fazer o download de um arquivo de uma API autenticada, precisamos do token
+    api
+      .get(reportUrl, {
+        responseType: "blob", // Importante para lidar com arquivos
+      })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `relatorio_frequencia.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      })
+      .catch(() => toast.error("Falha ao gerar o relatório."));
+  };
+
   if (!contract) {
     return (
       <div className="container mx-auto p-4 md:p-8">
@@ -144,6 +173,9 @@ export function ContractDetailPage() {
         <h1 className="text-3xl font-bold">
           Detalhes do Contrato #{contract.id}
         </h1>
+        <Button onClick={handleDownloadReport} variant="outline">
+          Baixar Relatório de Frequência
+        </Button>
         <p className="text-muted-foreground">
           Responsável: {contract.guardian_name} | Aluno: {contract.student_name}
         </p>

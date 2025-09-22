@@ -94,6 +94,22 @@ class StudentController {
       res.status(400).json({ message: error.message });
     }
   }
+
+  async getAddable(req, res) {
+    try {
+      const { routeId } = req.query; // Pega o ID da rota da URL
+      if (!routeId) {
+        return res.status(400).json({ message: "ID da rota é necessário." });
+      }
+      const students = await studentService.getAddableStudents(
+        req.user,
+        routeId
+      );
+      res.status(200).json(students);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 module.exports = new StudentController();

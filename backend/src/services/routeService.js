@@ -30,26 +30,29 @@ class RouteService {
 
   async getRouteById(id, user) {
     const tenantId = user.role === "super_admin" ? null : user.tenant_id;
-    const route = await routeRepository.findById(id, tenantId);
-    if (!route) throw new Error("Rota não encontrada ou acesso negado.");
 
-    // ===== QUERY CORRIGIDA =====
-    // Agora buscamos os novos campos de logística em vez do antigo 'trip_type'
+    // 1. Busca a rota principal usando o repositório para garantir a checagem de tenant
+    const route = await routeRepository.findById(id, tenantId);
+    if (!route) {
+      throw new Error("Rota não encontrada ou acesso negado.");
+    }
+
+    // 2. Busca os alunos associados a essa rota
     const students = await knex("routes_students as rs")
       .join("students as s", "rs.student_id", "s.id")
-      .leftJoin("addresses as pa", "rs.pickup_address_id", "pa.id") // JOIN para o endereço de coleta
-      .leftJoin("addresses as da", "rs.dropoff_address_id", "da.id") // JOIN para o endereço de entrega
+      .leftJoin("addresses as pa", "rs.pickup_address_id", "pa.id")
+      .leftJoin("addresses as da", "rs.dropoff_address_id", "da.id")
       .where("rs.route_id", id)
       .andWhere("s.tenant_id", tenantId)
       .select(
         "s.id",
         "s.name",
-        "rs.weekdays", // Seleciona a nova coluna
-        "pa.logradouro as pickup_location", // Renomeia para clareza
-        "da.logradouro as dropoff_location" // Renomeia para clareza
+        "rs.weekdays",
+        "pa.logradouro as pickup_location",
+        "da.logradouro as dropoff_location"
       );
-    // ===========================
 
+    // 3. Busca a equipe (staff) associada, AGORA INCLUINDO O TELEFONE
     const staff = await knex("routes_staff")
       .join("users", "routes_staff.user_id", "users.id")
       .where("routes_staff.route_id", id)
@@ -58,9 +61,11 @@ class RouteService {
         "users.id",
         "users.name",
         "users.role",
+        "users.phone",
         "routes_staff.assignment_type"
       );
 
+    // 4. Combina tudo em um único objeto de resposta
     return { ...route, students, staff };
   }
 

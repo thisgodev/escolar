@@ -159,6 +159,14 @@ class StudentService {
       return this.getStudentDetails(studentId, user);
     });
   }
+
+  async getAddableStudents(user, routeId) {
+    const tenantId = user.tenant_id;
+    if (user.role !== "admin" || !tenantId) {
+      throw new Error("Ação não permitida.");
+    }
+    return studentRepository.findActiveAndUnassigned(tenantId, routeId);
+  }
 }
 
 module.exports = new StudentService();

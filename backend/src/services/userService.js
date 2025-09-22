@@ -1,20 +1,33 @@
 const userRepository = require("../repositories/userRepository");
+const knex = require("../config/database"); // Adicione o knex se ele for usado em outras funções
 
 class UserService {
   /**
-   * Busca todos os usuários com papel de 'driver' ou 'monitor'.
+   * Busca a equipe disponível (drivers/monitors) para o usuário logado.
+   * Filtra pelo tenant_id do usuário.
+   * @param {object} user - O objeto do usuário autenticado (do token JWT).
    * @returns {Promise<object[]>}
    */
-  async getAvailableStaff() {
-    return userRepository.findStaff();
+  async getAvailableStaff(user) {
+    if (!user) {
+      throw new Error("Usuário não autenticado.");
+    }
+    const tenantId = user.role === "super_admin" ? null : user.tenant_id;
+    return userRepository.findStaff(tenantId);
   }
 
   /**
-   * Busca todos os usuários com papel de 'guardian'.
+   * Busca os responsáveis (guardians) para o usuário logado.
+   * Filtra pelo tenant_id do usuário.
+   * @param {object} user - O objeto do usuário autenticado (do token JWT).
    * @returns {Promise<object[]>}
    */
-  async getGuardians() {
-    return userRepository.findGuardians();
+  async getGuardians(user) {
+    if (!user) {
+      throw new Error("Usuário não autenticado.");
+    }
+    const tenantId = user.role === "super_admin" ? null : user.tenant_id;
+    return userRepository.findGuardians(tenantId);
   }
 }
 

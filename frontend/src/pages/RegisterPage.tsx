@@ -139,11 +139,11 @@ export function RegisterPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone</FormLabel>
+                      <FormLabel>WhatsApp (para contato)</FormLabel>
                       <FormControl>
                         <Input
-                          type="phone"
-                          placeholder="Seu Telefone"
+                          type="tel"
+                          placeholder="(41) 99999-9999"
                           {...field}
                         />
                       </FormControl>
