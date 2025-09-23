@@ -27,12 +27,13 @@ type Vehicle = {
   modelo: string;
   ano: number;
   capacidade: number;
-  status: string;
+  status: "ativo" | "inativo" | "em_manutencao";
 };
 
 export function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   const fetchVehicles = () =>
     api.get("/vehicles").then((res) => setVehicles(res.data));
@@ -88,10 +89,37 @@ export function VehiclesPage() {
                     {vehicle.status.replace(/_/g, " ")}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingVehicle(vehicle)}
+                  >
+                    Editar
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <Dialog
+          open={!!editingVehicle}
+          onOpenChange={(isOpen) => !isOpen && setEditingVehicle(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Veículo</DialogTitle>
+            </DialogHeader>
+            <VehicleForm
+              vehicleToEdit={editingVehicle}
+              onVehicleCreated={() => {
+                fetchVehicles();
+                setEditingVehicle(null);
+              }}
+              closeDialog={() => setEditingVehicle(null)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -18,30 +18,43 @@ import {
   DialogTrigger,
 } from "../components/ui/dialog";
 import { ContractForm } from "../components/ContractForm";
-import { Link, useNavigate } from "react-router-dom";
-import { PlusCircle } from "lucide-react";
-import { Badge } from "../components/ui/badge";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { AlertCircle, PlusCircle } from "lucide-react";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "../components/ui/tooltip";
+import { StatusBadge } from "@/components/StatusBadge";
+import { InstallmentStatus } from "@/types";
 
 type Contract = {
   id: number;
   guardian_name: string;
   student_name: string;
-  status: "active" | "finished" | "cancelled";
   installment_value: number;
+  current_month_status: InstallmentStatus;
+  has_past_due_installments: boolean;
 };
 
 export function ContractsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const statusFilter = searchParams.get("status");
 
   const fetchContracts = () => {
     api.get("/contracts").then((res) => setContracts(res.data));
   };
 
   useEffect(() => {
-    fetchContracts();
-  }, []);
+    api
+      .get(`/contracts${statusFilter ? `?status=${statusFilter}` : ""}`)
+      .then((res) => setContracts(res.data));
+  }, [statusFilter]);
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -53,6 +66,26 @@ export function ContractsPage() {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gerenciar Contratos</h1>
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={!statusFilter ? "secondary" : "outline"}
+            onClick={() => setSearchParams({})}
+          >
+            Todos
+          </Button>
+          <Button
+            variant={statusFilter === "pending" ? "secondary" : "outline"}
+            onClick={() => setSearchParams({ status: "pending" })}
+          >
+            Pendentes/Vencidos
+          </Button>
+          <Button
+            variant={statusFilter === "paid" ? "secondary" : "outline"}
+            onClick={() => setSearchParams({ status: "paid" })}
+          >
+            Pagos
+          </Button>
+        </div>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -77,18 +110,20 @@ export function ContractsPage() {
       </div>
 
       <div className="border rounded-lg bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead>Responsável</TableHead>
-              <TableHead>Aluno</TableHead>
-              <TableHead>Valor Mensal</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {contracts.length > 0 ? (
-              contracts.map((contract) => (
+        <TooltipProvider>
+          {" "}
+          {/* Provedor para os tooltips */}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Responsável</TableHead>
+                <TableHead>Aluno</TableHead>
+                <TableHead>Valor Mensal</TableHead>
+                <TableHead>Status (Mês Atual)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contracts.map((contract) => (
                 <TableRow
                   key={contract.id}
                   onClick={() => navigate(`/contracts/${contract.id}`)}
@@ -103,29 +138,31 @@ export function ContractsPage() {
                     }).format(contract.installment_value)}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        contract.status === "active" ? "default" : "secondary"
-                      }
-                      className="capitalize"
-                    >
-                      {contract.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {/* Badge para o status do MÊS ATUAL */}
+                      <StatusBadge status={contract.current_month_status} />
+
+                      {/* "Balãozinho" de AVISO para pendências passadas */}
+                      {contract.has_past_due_installments && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <AlertCircle className="h-5 w-5 text-destructive" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              Este contrato possui pendências de meses
+                              anteriores.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center text-muted-foreground"
-                >
-                  Nenhum contrato cadastrado.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        </TooltipProvider>
       </div>
     </div>
   );

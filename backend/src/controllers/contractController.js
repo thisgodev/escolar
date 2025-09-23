@@ -15,7 +15,8 @@ class ContractController {
 
   async getAll(req, res) {
     try {
-      const contracts = await contractService.getAllContracts(req.user);
+      const { status } = req.query;
+      const contracts = await contractService.getAllContracts(req.user, status);
       res.status(200).json(contracts);
     } catch (error) {
       res.status(500).json({ message: error.message });

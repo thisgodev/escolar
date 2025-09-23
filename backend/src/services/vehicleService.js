@@ -22,6 +22,25 @@ class VehicleService {
     const tenantId = user.role === "super_admin" ? null : user.tenant_id;
     return vehicleRepository.getAll(tenantId);
   }
+
+  async getVehicleById(id, user) {
+    const tenantId = user.tenant_id;
+    const vehicle = await vehicleRepository.findById(id, tenantId);
+    if (!vehicle) throw new Error("Veículo não encontrado ou acesso negado.");
+    return vehicle;
+  }
+  async updateVehicle(id, data, user) {
+    const tenantId = user.tenant_id;
+    const [updatedVehicle] = await vehicleRepository.update(id, tenantId, data);
+    if (!updatedVehicle) throw new Error("Falha ao atualizar o veículo.");
+    return updatedVehicle;
+  }
+  async deleteVehicle(id, user) {
+    const tenantId = user.tenant_id;
+    const [updatedVehicle] = await vehicleRepository.delete(id, tenantId);
+    if (!updatedVehicle) throw new Error("Falha ao atualizar o veículo.");
+    return updatedVehicle;
+  }
 }
 
 module.exports = new VehicleService();

@@ -89,7 +89,7 @@ export function AdminDashboard({ summary }: AdminDashboardProps) {
     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
       {/* Card Clicável: A Receber (Mês) */}
       <Card
-        onClick={() => navigate("/contracts")} // Futuramente: /financials/pending
+        onClick={() => navigate("/contracts?status=pending")} // Futuramente: /financials/pending
         className="cursor-pointer transition-all hover:border-primary/80 hover:shadow-lg"
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -108,7 +108,7 @@ export function AdminDashboard({ summary }: AdminDashboardProps) {
 
       {/* Card Clicável: Recebido no Mês */}
       <Card
-        onClick={() => navigate("/contracts")} // Futuramente: /financials/paid
+        onClick={() => navigate("/contracts?status=paid")} // Futuramente: /financials/paid
         className="cursor-pointer transition-all hover:border-primary/80 hover:shadow-lg"
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

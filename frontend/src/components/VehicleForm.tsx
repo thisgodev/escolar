@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 type VehicleFormData = {
   placa: string;
@@ -26,19 +27,42 @@ type VehicleFormData = {
   capacidade: number;
   status: "ativo" | "inativo" | "em_manutencao";
 };
+type Vehicle = {
+  id: number;
+  placa: string;
+  modelo: string;
+  ano: number;
+  capacidade: number;
+  status: "ativo" | "inativo" | "em_manutencao";
+};
+
 interface VehicleFormProps {
   onVehicleCreated: () => void;
   closeDialog: () => void;
+  vehicleToEdit?: Vehicle | null;
 }
 
 export function VehicleForm({
   onVehicleCreated,
   closeDialog,
+  vehicleToEdit,
 }: VehicleFormProps) {
   const form = useForm<VehicleFormData>();
 
+  useEffect(() => {
+    if (vehicleToEdit) {
+      form.reset(vehicleToEdit); // Preenche o form para edição
+    }
+  }, [vehicleToEdit, form]);
+
   async function onSubmit(data: VehicleFormData) {
-    const promise = api.post("/vehicles", {
+    let promise;
+    if (vehicleToEdit) {
+      promise = api.patch(`/vehicles/${vehicleToEdit.id}`, data);
+    } else {
+      promise = api.post("/vehicles", data);
+    }
+    promise = api.post("/vehicles", {
       ...data,
       ano: Number(data.ano),
       capacidade: Number(data.capacidade),

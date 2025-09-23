@@ -2,6 +2,7 @@ const knex = require("../config/database");
 const contractRepository = require("../repositories/contractRepository");
 const installmentRepository = require("../repositories/installmentRepository");
 const { addMonths } = require("date-fns");
+const { getInstallmentStatus } = require("../utils/statusHelper");
 
 class ContractService {
   /**
@@ -58,9 +59,77 @@ class ContractService {
   /**
    * Busca todos os contratos, aplicando o filtro de tenant com base no perfil.
    */
-  async getAllContracts(user) {
+  async getAllContracts(user, statusFilter) {
     const tenantId = user.role === "super_admin" ? null : user.tenant_id;
-    return contractRepository.getAll(tenantId);
+
+    // 1. Busca a lista base de contratos
+    const contracts = await contractRepository.getAll(tenantId);
+
+    // Se não houver contratos, retorne um array vazio
+    if (contracts.length === 0) {
+      return [];
+    }
+
+    const contractIds = contracts.map((c) => c.id);
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const firstDayOfCurrentMonth = new Date(currentYear, currentMonth - 1, 1);
+
+    // 2. Busca todas as parcelas relevantes para os contratos encontrados
+    const allInstallments = await knex("installments")
+      .where({ tenant_id: tenantId })
+      .whereIn("contract_id", contractIds)
+      .orderBy("due_date", "asc");
+
+    // 3. Processa os dados para cada contrato
+    const contractsWithStatus = contracts.map((contract) => {
+      const relatedInstallments = allInstallments.filter(
+        (i) => i.contract_id === contract.id
+      );
+
+      // Encontra a parcela do mês atual
+      const currentMonthInstallment = relatedInstallments.find((i) => {
+        const dueDate = new Date(i.due_date);
+        return (
+          dueDate.getMonth() + 1 === currentMonth &&
+          dueDate.getFullYear() === currentYear
+        );
+      });
+
+      // Verifica se há parcelas vencidas de meses anteriores
+      const hasPastDueInstallments = relatedInstallments.some((i) => {
+        const dueDate = new Date(i.due_date);
+        return dueDate < firstDayOfCurrentMonth && i.status === "pending";
+      });
+
+      return {
+        ...contract,
+        // O status principal do contrato é o status da parcela deste mês
+        current_month_status: currentMonthInstallment
+          ? getInstallmentStatus(currentMonthInstallment)
+          : "sem_parcela",
+        has_past_due_installments: hasPastDueInstallments,
+      };
+    });
+
+    // 4. Aplica o filtro (se houver) com base no novo status calculado
+    if (statusFilter) {
+      return contractsWithStatus.filter((c) => {
+        if (statusFilter === "pending") {
+          return (
+            ["pendente", "vencido"].includes(c.current_month_status) ||
+            c.has_past_due_installments
+          );
+        }
+        if (statusFilter === "paid") {
+          return c.current_month_status === "pago";
+        }
+        return true;
+      });
+    }
+
+    return contractsWithStatus;
   }
 
   /**
@@ -77,6 +146,11 @@ class ContractService {
       tenantId
     );
 
+    const installmentsWithStatus = installments.map((inst) => ({
+      ...inst,
+      status: getInstallmentStatus(inst),
+    }));
+
     // Precisamos buscar os nomes aqui também, pois findById não faz join
     const guardian = await knex("users")
       .where({ id: contract.guardian_id })
@@ -87,7 +161,7 @@ class ContractService {
 
     return {
       ...contract,
-      installments,
+      installments: installmentsWithStatus,
       guardian_name: guardian.name,
       student_name: student.name,
     };

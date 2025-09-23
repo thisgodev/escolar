@@ -19,4 +19,7 @@ router.post("/", adminMiddleware, schoolController.create);
 // router.put('/:id', adminMiddleware, schoolController.update);
 // router.delete('/:id', adminMiddleware, schoolController.delete);
 
+router.get("/:id", schoolController.getById);
+router.patch("/:id", schoolController.update);
+
 module.exports = router;

@@ -51,6 +51,19 @@ class SchoolService {
 
     return schoolRepository.getAll(tenantId);
   }
+
+  async getschoolById(id, user) {
+    const tenantId = user.tenant_id;
+    const school = await schoolRepository.findById(id, tenantId);
+    if (!school) throw new Error("Escola não encontrado ou acesso negado.");
+    return school;
+  }
+  async updateschool(id, data, user) {
+    const tenantId = user.tenant_id;
+    const [updatedschool] = await schoolRepository.update(id, tenantId, data);
+    if (!updatedschool) throw new Error("Falha ao atualizar a escola.");
+    return updatedschool;
+  }
 }
 
 module.exports = new SchoolService();

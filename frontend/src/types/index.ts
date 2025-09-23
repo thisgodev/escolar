@@ -17,6 +17,9 @@ export type School = {
   cnpj: string | null;
 };
 
-// Adicione outros tipos globais aqui conforme precisar...
-// export type Contract = { ... };
-// export type Route = { ... };
+export type InstallmentStatus =
+  | "paid"
+  | "pending"
+  | "overdue"
+  | "cancelled"
+  | "sem_parcela";

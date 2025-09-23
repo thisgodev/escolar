@@ -53,6 +53,14 @@ class SchoolController {
         .json({ message: "Erro ao buscar escolas.", error: error.message });
     }
   }
+
+  async getById(req, res) {
+    await schoolService.getById(req.params.id, req.user);
+  }
+
+  async update(req, res) {
+    await schoolService.update(req.params.id, req.body, req.user);
+  }
 }
 
 module.exports = new SchoolController();

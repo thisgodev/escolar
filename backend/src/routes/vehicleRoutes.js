@@ -7,5 +7,7 @@ const vehicleController = require("../controllers/vehicleController");
 router.use(authMiddleware, adminMiddleware);
 router.post("/", vehicleController.create);
 router.get("/", vehicleController.getAll);
+router.get("/:id", vehicleController.getById);
+router.patch("/:id", vehicleController.update);
 
 module.exports = router;

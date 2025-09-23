@@ -11,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +32,7 @@ import {
 } from "../components/ui/alert-dialog";
 import { Checkbox } from "../components/ui/checkbox";
 import { Skeleton } from "../components/ui/skeleton";
+import { StatusBadge } from "@/components/StatusBadge";
 
 // Tipos para os dados da página
 type Installment = {
@@ -260,22 +260,10 @@ export function ContractDetailPage() {
                   }).format(installment.base_value)}
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant={
-                      installment.status === "paid"
-                        ? "default"
-                        : installment.status === "overdue"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                    className="capitalize"
-                  >
-                    {installment.status === "paid"
-                      ? `Pago em ${new Date(
-                          installment.payment_date!
-                        ).toLocaleDateString("pt-BR", { timeZone: "UTC" })}`
-                      : "Pendente"}
-                  </Badge>
+                  <StatusBadge
+                    status={installment.status}
+                    paymentDate={installment.payment_date}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   {installment.status === "pending" && (
