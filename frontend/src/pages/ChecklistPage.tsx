@@ -49,7 +49,7 @@ type ChecklistResponse = {
   students: ChecklistStudent[];
 };
 
-export function ChecklistPage() {
+function ChecklistPage() {
   const [myRoutes, setMyRoutes] = useState<RouteInfo[]>([]);
   const [selectedRouteId, setSelectedRouteId] = useState<string>("");
   const [checklistData, setChecklistData] = useState<ChecklistResponse | null>(
@@ -309,3 +309,5 @@ export function ChecklistPage() {
     </div>
   );
 }
+
+export default ChecklistPage;

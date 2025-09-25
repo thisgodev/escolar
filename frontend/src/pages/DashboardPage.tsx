@@ -6,7 +6,7 @@ import { GuardianDashboard } from "../components/dashboards/GuardianDashboard";
 import { DriverDashboard } from "../components/dashboards/DriverDashboard";
 import { Skeleton } from "../components/ui/skeleton"; // Para um efeito de loading melhor
 
-export function DashboardPage() {
+function DashboardPage() {
   const { user } = useAuth();
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const [summary, setSummary] = useState<any>(null);
@@ -70,3 +70,5 @@ export function DashboardPage() {
     </div>
   );
 }
+
+export default DashboardPage;

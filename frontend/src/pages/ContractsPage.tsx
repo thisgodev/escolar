@@ -38,7 +38,7 @@ type Contract = {
   has_past_due_installments: boolean;
 };
 
-export function ContractsPage() {
+function ContractsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -167,3 +167,5 @@ export function ContractsPage() {
     </div>
   );
 }
+
+export default ContractsPage;

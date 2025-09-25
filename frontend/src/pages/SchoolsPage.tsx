@@ -23,7 +23,7 @@ import { PlusCircle } from "lucide-react";
 
 type School = { id: number; name: string; cnpj: string | null };
 
-export function SchoolsPage() {
+function SchoolsPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -105,3 +105,5 @@ export function SchoolsPage() {
     </div>
   );
 }
+
+export default SchoolsPage;

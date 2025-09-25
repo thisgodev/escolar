@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { PlusCircle, User } from "lucide-react";
 import { type Student } from "../types"; // Importando o tipo centralizado
 
-export function StudentsPage() {
+function StudentsPage() {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -96,3 +96,5 @@ export function StudentsPage() {
     </div>
   );
 }
+
+export default StudentsPage;

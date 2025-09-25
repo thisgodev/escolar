@@ -51,7 +51,7 @@ type ContractDetails = {
   installments: Installment[];
 };
 
-export function ContractDetailPage() {
+function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [contract, setContract] = useState<ContractDetails | null>(null);
   const [paymentModalData, setPaymentModalData] = useState<Installment | null>(
@@ -346,3 +346,5 @@ export function ContractDetailPage() {
     </div>
   );
 }
+
+export default ContractDetailPage;

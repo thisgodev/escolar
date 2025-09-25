@@ -26,7 +26,7 @@ type StudentDetails = StudentType & {
   addresses: any[]; // Simplificado, pode ser um tipo mais específico
 };
 
-export function StudentDetailPage() {
+function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [student, setStudent] = useState<StudentDetails | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -100,3 +100,5 @@ export function StudentDetailPage() {
     </div>
   );
 }
+
+export default StudentDetailPage;

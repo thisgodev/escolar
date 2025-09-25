@@ -42,7 +42,7 @@ type RouteDetails = {
   staff: StaffOnRoute[];
 };
 
-export function RouteDetailPage() {
+function RouteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [route, setRoute] = useState<RouteDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -242,3 +242,5 @@ export function RouteDetailPage() {
     </div>
   );
 }
+
+export default RouteDetailPage;

@@ -28,7 +28,7 @@ type Route = {
   school_name: string;
 };
 
-export function RoutesPage() {
+function RoutesPage() {
   const navigate = useNavigate();
   const [routes, setRoutes] = useState<Route[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -115,3 +115,5 @@ export function RoutesPage() {
     </div>
   );
 }
+
+export default RoutesPage;

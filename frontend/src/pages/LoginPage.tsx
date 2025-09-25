@@ -22,7 +22,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import logo from "../assets/logo-sem-fundo.png";
 
-export function LoginPage() {
+function LoginPage() {
   const navigate = useNavigate();
   const form = useForm({
     defaultValues: {
@@ -176,3 +176,5 @@ export function LoginPage() {
     </div>
   );
 }
+
+export default LoginPage;

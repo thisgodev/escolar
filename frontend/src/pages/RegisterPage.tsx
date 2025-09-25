@@ -29,7 +29,7 @@ type InviteData = {
   role: "guardian" | "driver" | "monitor";
 };
 
-export function RegisterPage() {
+function RegisterPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const inviteToken = searchParams.get("token");
@@ -267,3 +267,5 @@ export function RegisterPage() {
     </div>
   );
 }
+
+export default RegisterPage;

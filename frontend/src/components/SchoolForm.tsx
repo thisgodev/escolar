@@ -134,8 +134,7 @@ export function SchoolForm({ onSchoolCreated, closeDialog }: SchoolFormProps) {
                 <FormControl>
                   <Input
                     {...field}
-                    maxLength={9} // Ex: 88888-888
-                    // Chama a busca quando o campo perde o foco (onBlur)
+                    maxLength={9}
                     onBlur={(e) => fetchAddressByCEP(e.target.value)}
                   />
                 </FormControl>

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ShieldCheck, MapPinned, Users } from "lucide-react";
 
-export function HomePage() {
+function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -95,3 +95,5 @@ export function HomePage() {
     </div>
   );
 }
+
+export default HomePage;
