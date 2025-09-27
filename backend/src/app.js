@@ -17,6 +17,7 @@ const vehicleRoutes = require("./routes/vehicleRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const inviteRoutes = require("./routes/inviteRoutes");
+const onboardingRoutes = require("./routes/onboardingRoutes");
 
 // --- Inicialização da Aplicação Express ---
 const app = express();
@@ -61,6 +62,7 @@ app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/invites", inviteRoutes);
+app.use("/api/onboarding", onboardingRoutes);
 
 // --- Rota de Teste (Opcional) ---
 // Útil para verificar se o servidor está no ar.

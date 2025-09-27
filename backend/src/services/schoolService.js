@@ -44,10 +44,19 @@ class SchoolService {
    * @param {object} user - O objeto do usuário autenticado.
    * @returns {Promise<object[]>}
    */
-  async getAllSchools(user) {
-    // Se for Super Admin, tenantId será null, e o repositório buscará tudo.
-    // Caso contrário, usa o tenant_id do usuário.
-    const tenantId = user.role === "super_admin" ? null : user.tenant_id;
+  async getAllSchools(user, tenantIdFromQuery) {
+    let tenantId;
+
+    if (user) {
+      // Se o usuário está LOGADO (ex: um admin), a fonte da verdade é o token.
+      tenantId = user.role === "super_admin" ? null : user.tenant_id;
+    } else if (tenantIdFromQuery) {
+      // Se a rota é PÚBLICA (como a de matrícula), a fonte da verdade é a query da URL.
+      tenantId = tenantIdFromQuery;
+    } else {
+      // Se não houver nem usuário logado nem filtro, não retorna nada.
+      return [];
+    }
 
     return schoolRepository.getAll(tenantId);
   }

@@ -12,6 +12,7 @@ import { Skeleton } from "../components/ui/skeleton"; // Para um fallback de loa
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
+const MatriculaPage = lazy(() => import("@/pages/MatriculaPage"));
 const DashboardPage = lazy(() => import("../pages/DashboardPage"));
 const StudentsPage = lazy(() => import("../pages/StudentsPage"));
 const SchoolsPage = lazy(() => import("../pages/SchoolsPage"));
@@ -41,6 +42,7 @@ export function AppRouter() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/matricula/:tenantId" element={<MatriculaPage />} />
 
           {/* --- Rotas Protegidas com o Layout Principal --- */}
           <Route element={<ProtectedRoute />}>

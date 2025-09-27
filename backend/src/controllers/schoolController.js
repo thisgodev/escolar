@@ -44,8 +44,8 @@ class SchoolController {
    */
   async getAll(req, res) {
     try {
-      // Passa o objeto user inteiro para o serviço
-      const schools = await schoolService.getAllSchools(req.user);
+      const { tenantId } = req.query;
+      const schools = await schoolService.getAllSchools(req.user, tenantId);
       res.status(200).json(schools);
     } catch (error) {
       res

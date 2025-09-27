@@ -4,22 +4,31 @@ const schoolController = require("../controllers/schoolController");
 const authMiddleware = require("../middlewares/authMiddleware");
 const adminMiddleware = require("../middlewares/adminMiddleware");
 
-// Requer que o usuário esteja logado para todas as rotas
-router.use(authMiddleware);
-
-// Qualquer usuário logado pode listar as escolas
-// Ex: GET http://localhost:3001/api/schools
+// =================================================================
+// ROTA PÚBLICA (para o formulário de matrícula)
+// =================================================================
+// Esta rota NÃO tem o 'authMiddleware'.
+// A segurança é feita no service, que exige um 'tenantId' na query.
+// Ex: GET /api/schools?tenantId=1
 router.get("/", schoolController.getAll);
 
-// Apenas administradores podem criar novas escolas
-// Ex: POST http://localhost:3001/api/schools
-router.post("/", adminMiddleware, schoolController.create);
+// =================================================================
+// ROTAS PROTEGIDAS (exigem que o usuário esteja logado)
+// =================================================================
 
-// Futuramente, as rotas de update e delete também usarão o adminMiddleware
-// router.put('/:id', adminMiddleware, schoolController.update);
-// router.delete('/:id', adminMiddleware, schoolController.delete);
+// Apenas administradores logados podem criar novas escolas
+// Ex: POST /api/schools
+router.post("/", authMiddleware, adminMiddleware, schoolController.create);
 
-router.get("/:id", schoolController.getById);
-router.patch("/:id", schoolController.update);
+// Qualquer usuário logado pode buscar os detalhes de uma escola
+// Ex: GET /api/schools/1
+router.get("/:id", authMiddleware, schoolController.getById);
+
+// Apenas administradores logados podem atualizar uma escola
+// Ex: PATCH /api/schools/1
+router.patch("/:id", authMiddleware, adminMiddleware, schoolController.update);
+
+// Futuramente:
+// router.delete('/:id', authMiddleware, adminMiddleware, schoolController.delete);
 
 module.exports = router;
